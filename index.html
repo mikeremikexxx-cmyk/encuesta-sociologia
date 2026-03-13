@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<title>Sociología de la Moda · Encuesta</title>
+<link href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════════
+   BASE
+═══════════════════════════════════════════════════ */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{
+  width:100%;height:100%;overflow:hidden;
+  background:#ffffff;
+  font-family:'Raleway',sans-serif;
+  touch-action:none;
+}
+
+/* ═══════════════════════════════════════════════════
+   CANVAS BACKGROUND (particles)
+═══════════════════════════════════════════════════ */
+#bg-canvas{
+  position:fixed;inset:0;
+  pointer-events:none;z-index:1;  /* above body, below screens */
+}
+
+/* ═══════════════════════════════════════════════════
+   SCREEN SYSTEM
+═══════════════════════════════════════════════════ */
+.screen{
+  position:fixed;inset:0;z-index:2;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:24px 20px;
+  opacity:0;pointer-events:none;
+  transition:opacity .35s ease, transform .35s ease;
+  transform:translateX(40px);
+  overflow:hidden;
+  background:transparent; /* particle screens show canvas through */
+}
+/* White bg only for question screens */
+.screen-question{
+  background:#ffffff !important;
+  justify-content:flex-start;
+  padding:44px 20px 24px;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  align-items:flex-start;
+}
+
+.screen.active{
+  opacity:1;pointer-events:all;
+  transform:translateX(0);
+}
+.screen.exit-left{
+  opacity:0;transform:translateX(-40px);
+}
+.screen.exit-right{
+  opacity:0;transform:translateX(40px);
+}
+
+/* ═══════════════════════════════════════════════════
+   PROGRESS BAR (always visible)
+═══════════════════════════════════════════════════ */
+#progress-bar-wrap{
+  position:fixed;top:0;left:0;right:0;height:3px;z-index:100;
+  background:rgba(0,0,0,.08);
+}
+#progress-bar{
+  height:3px;background:#e04000;
+  transition:width .4s ease;width:0%;
+}
+#progress-label{
+  position:fixed;top:8px;right:16px;z-index:100;
+  font-family:'Montserrat',sans-serif;font-size:10px;
+  letter-spacing:1px;color:rgba(0,0,0,.35);
+}
+
+/* ═══════════════════════════════════════════════════
+   PORTADA (vertical, full screen)
+═══════════════════════════════════════════════════ */
+#screen-cover{
+  justify-content:center;
+}
+.cover-tag{
+  font-family:'Montserrat',sans-serif;font-size:9px;
+  letter-spacing:3px;text-transform:uppercase;
+  color:rgba(0,0,0,.45);margin-bottom:20px;
+  animation:fadeUp .6s .2s both;
+}
+.cover-title{
+  font-family:'PT Serif',serif;font-weight:700;
+  font-size:clamp(36px,10vw,56px);
+  color:#111;line-height:1.1;text-align:center;
+  background:rgba(224,64,0,.5);
+  padding:8px 16px;display:inline-block;
+  margin-bottom:8px;
+  animation:fadeUp .6s .3s both;
+}
+.cover-subtitle{
+  font-family:'Montserrat',sans-serif;font-weight:500;
+  font-size:clamp(13px,3.5vw,18px);
+  color:#111;text-align:center;
+  background:rgba(240,184,48,.5);
+  padding:5px 12px;display:inline-block;
+  margin-bottom:32px;
+  animation:fadeUp .6s .4s both;
+}
+.cover-btn{
+  font-family:'Montserrat',sans-serif;font-size:12px;
+  font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  background:#111;color:#fff;border:none;
+  border-radius:6px;padding:14px 40px;cursor:pointer;
+  transition:.2s;
+  animation:fadeUp .6s .5s both;
+}
+.cover-btn:active{transform:scale(.97);}
+
+/* ═══════════════════════════════════════════════════
+   INTRO TEXT (vertical)
+═══════════════════════════════════════════════════ */
+#screen-intro{}
+.intro-heading{
+  font-family:'PT Serif',serif;font-weight:700;
+  font-size:22px;color:#111;
+  background:rgba(224,64,0,.5);
+  padding:6px 14px;display:inline-block;
+  margin-bottom:20px;text-align:center;
+}
+.intro-text{
+  font-family:'Raleway',sans-serif;font-weight:400;
+  font-size:15px;line-height:1.75;
+  color:#333;text-align:center;
+  max-width:360px;
+}
+.intro-btn{
+  margin-top:32px;
+  font-family:'Montserrat',sans-serif;font-size:11px;
+  font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  background:#111;color:#fff;border:none;
+  border-radius:6px;padding:13px 36px;cursor:pointer;
+  transition:.2s;
+}
+.intro-btn:active{transform:scale(.97);}
+
+/* ═══════════════════════════════════════════════════
+   SECTION TITLE (horizontal)
+═══════════════════════════════════════════════════ */
+.screen-section{}
+.section-num-badge{
+  font-family:'Montserrat',sans-serif;font-size:9px;
+  letter-spacing:3px;text-transform:uppercase;
+  color:rgba(0,0,0,.4);margin-bottom:14px;
+}
+.section-title-text{
+  font-family:'PT Serif',serif;font-weight:700;
+  font-size:clamp(16px,4.5vw,34px);color:#111;
+  background:rgba(224,64,0,.5);
+  padding:8px 16px;text-align:center;
+  line-height:1.15;white-space:nowrap;
+  max-width:96vw;overflow:hidden;
+}
+.section-btn{
+  margin-top:28px;
+  font-family:'Montserrat',sans-serif;font-size:11px;
+  font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  background:#111;color:#fff;border:none;
+  border-radius:6px;padding:12px 32px;cursor:pointer;
+  transition:.2s;
+}
+.section-btn:active{transform:scale(.97);}
+
+/* ═══════════════════════════════════════════════════
+   QUESTION CONTENT STYLES
+═══════════════════════════════════════════════════ */
+.q-num{
+  font-family:'Montserrat',sans-serif;font-size:9px;
+  letter-spacing:2.5px;text-transform:uppercase;
+  color:rgba(0,0,0,.4);margin-bottom:10px;align-self:flex-start;
+}
+.q-text{
+  font-family:'Montserrat',sans-serif;font-weight:500;
+  font-size:clamp(14px,3.8vw,18px);
+  color:#111;line-height:1.5;
+  margin-bottom:6px;align-self:flex-start;width:100%;
+  background:rgba(240,184,48,.5);
+  padding:8px 12px;
+}
+.q-hint{
+  font-family:'Raleway',sans-serif;font-size:11px;
+  color:rgba(0,0,0,.45);font-style:italic;
+  margin-bottom:16px;align-self:flex-start;
+}
+
+/* Options */
+.options-list{
+  display:flex;flex-direction:column;gap:9px;
+  width:100%;
+}
+.opt-btn{
+  display:flex;align-items:center;gap:12px;
+  border:1.5px solid rgba(0,0,0,.14);
+  border-radius:8px;padding:11px 14px;
+  cursor:pointer;transition:.15s;
+  background:rgba(255,255,255,.8);
+  font-family:'Raleway',sans-serif;
+  font-size:clamp(13px,3.5vw,15px);
+  color:#222;line-height:1.4;text-align:left;
+  width:100%;
+}
+.opt-btn:active{transform:scale(.99);}
+.opt-btn.selected{
+  border-color:#111;background:rgba(224,64,0,.08);
+}
+.opt-indicator{
+  width:20px;height:20px;flex-shrink:0;
+  border-radius:50%;border:2px solid rgba(0,0,0,.2);
+  display:flex;align-items:center;justify-content:center;
+  transition:.15s;
+}
+.opt-btn.selected .opt-indicator{
+  background:#111;border-color:#111;
+}
+.opt-indicator::after{
+  content:'';width:8px;height:8px;
+  border-radius:50%;background:#fff;
+  opacity:0;transition:.15s;
+}
+.opt-btn.selected .opt-indicator::after{opacity:1;}
+/* checkbox */
+.opt-indicator.box{border-radius:4px;}
+.opt-indicator.box::after{
+  content:'✓';font-size:11px;font-weight:700;
+  width:auto;height:auto;background:transparent;color:#fff;
+}
+.opt-btn.selected .opt-indicator.box::after{opacity:1;}
+
+/* Textarea / input */
+.q-textarea{
+  width:100%;border:1.5px solid rgba(0,0,0,.15);
+  border-radius:8px;padding:12px;
+  font-family:'Raleway',sans-serif;font-size:14px;
+  color:#111;resize:none;outline:none;
+  background:rgba(255,255,255,.9);
+  min-height:110px;line-height:1.6;
+  transition:border .15s;
+}
+.q-textarea:focus{border-color:#e04000;}
+.q-input{
+  width:100%;border:1.5px solid rgba(0,0,0,.15);
+  border-radius:8px;padding:12px 14px;
+  font-family:'Raleway',sans-serif;font-size:15px;
+  color:#111;outline:none;
+  background:rgba(255,255,255,.9);
+  transition:border .15s;
+}
+.q-input:focus{border-color:#e04000;}
+
+/* Matrix */
+.matrix-table{width:100%;border-collapse:collapse;}
+.matrix-table th{
+  font-family:'Montserrat',sans-serif;font-size:9px;
+  letter-spacing:.5px;text-align:center;
+  color:rgba(0,0,0,.5);padding:6px 4px;
+  border-bottom:1.5px solid rgba(0,0,0,.1);
+  text-transform:uppercase;
+}
+.matrix-table th:first-child{text-align:left;}
+.matrix-table td{
+  padding:9px 4px;border-bottom:1px solid rgba(0,0,0,.06);
+  text-align:center;vertical-align:middle;
+}
+.matrix-table td:first-child{
+  font-size:12px;color:#333;text-align:left;padding-left:0;
+  line-height:1.3;
+}
+.matrix-table tr:last-child td{border-bottom:none;}
+.m-radio{
+  width:20px;height:20px;border-radius:50%;
+  border:2px solid rgba(0,0,0,.2);
+  cursor:pointer;display:block;margin:auto;
+  -webkit-appearance:none;appearance:none;
+  transition:.15s;
+}
+.m-radio:checked{background:#111;border-color:#111;}
+.m-radio:active{transform:scale(.9);}
+
+/* Nav row */
+.nav-row{
+  display:flex;align-items:center;justify-content:space-between;
+  width:100%;margin-top:auto;padding-top:16px;
+  flex-shrink:0;
+}
+.btn-back{
+  font-family:'Montserrat',sans-serif;font-size:11px;
+  color:rgba(0,0,0,.4);background:none;border:none;
+  cursor:pointer;padding:8px 4px;letter-spacing:.5px;
+}
+.btn-next{
+  font-family:'Montserrat',sans-serif;font-size:11px;
+  font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  background:#111;color:#fff;border:none;
+  border-radius:6px;padding:12px 28px;cursor:pointer;
+  transition:background .2s, opacity .25s, transform .15s;
+  visibility:hidden; /* shown by JS when answered */
+}
+.btn-next:active{transform:scale(.97);}
+.btn-next[style*="visible"]{visibility:visible;}
+
+/* Question screen embedded particle canvas */
+.q-canvas{
+  position:absolute;top:0;left:0;
+  width:100%;height:100%;
+  pointer-events:none;z-index:0;
+}
+
+/* Error flash */
+.error-flash{
+  font-family:'Montserrat',sans-serif;font-size:11px;
+  color:#e04000;margin-top:8px;text-align:center;
+  min-height:16px;align-self:flex-start;
+}
+
+/* ═══════════════════════════════════════════════════
+   THANK YOU
+═══════════════════════════════════════════════════ */
+#screen-thanks{}
+.thanks-icon{font-size:52px;margin-bottom:20px;animation:pop .5s ease;}
+.thanks-title{
+  font-family:'PT Serif',serif;font-weight:700;
+  font-size:clamp(28px,8vw,44px);color:#111;
+  background:rgba(224,64,0,.5);
+  padding:8px 16px;text-align:center;
+  margin-bottom:12px;
+}
+.thanks-sub{
+  font-family:'Montserrat',sans-serif;font-weight:400;
+  font-size:14px;color:rgba(0,0,0,.55);
+  text-align:center;line-height:1.7;max-width:320px;
+}
+.thanks-sending{
+  font-family:'Montserrat',sans-serif;font-size:11px;
+  color:rgba(0,0,0,.4);margin-top:16px;letter-spacing:1px;
+}
+
+/* ═══════════════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════════════ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+@keyframes pop{0%{transform:scale(0);}80%{transform:scale(1.1);}100%{transform:scale(1);}}
+
+/* Lock landscape for question screens via CSS hint */
+@media(orientation:portrait) and (max-width:600px){
+  .screen-question .q-text{font-size:15px;}
+}
+</style>
+</head>
+<body>
+
+<!-- PROGRESS -->
+<div id="progress-bar-wrap"><div id="progress-bar"></div></div>
+<div id="progress-label"></div>
+
+<!-- BACKGROUND CANVAS -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- ══════════════════════════════════════
+     SCREEN 0: PORTADA
+══════════════════════════════════════ -->
+<div class="screen active" id="screen-cover">
+  <div class="cover-tag">Encuesta inicial · 2026</div>
+  <div class="cover-title">Sociología<br/>de la Moda</div>
+  <div class="cover-subtitle">Licenciatura en Diseño de<br/>Indumentaria y Textil</div>
+  <button class="cover-btn" onclick="goTo(1)">Comenzar →</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 1: INTRO
+══════════════════════════════════════ -->
+<div class="screen" id="screen-intro">
+  <div class="intro-heading">Antes de empezar</div>
+  <p class="intro-text">Esta encuesta tiene como objetivo conocer tus intereses, experiencias y preferencias de aprendizaje antes de comenzar la cursada de Sociología de la Moda.<br/><br/>Las respuestas permitirán ajustar la forma de dar las clases, los tipos de actividades y las estrategias de trabajo con la bibliografía.<br/><br/>La encuesta es anónima y no obligatoria, sentite libre de no responder sin que haga falta avisarle al docente.</p>
+  <button class="intro-btn" onclick="goTo(2)">Empezar encuesta →</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREENS: SECTIONS + QUESTIONS
+     (generated by JS)
+══════════════════════════════════════ -->
+<div id="dynamic-screens"></div>
+
+<!-- ══════════════════════════════════════
+     SCREEN FINAL: GRACIAS
+══════════════════════════════════════ -->
+<div class="screen" id="screen-thanks">
+  <div class="thanks-icon">✅</div>
+  <div class="thanks-title">¡Gracias!</div>
+  <p class="thanks-sub">Tus respuestas fueron enviadas de forma anónima.<br/>Ayudarán a mejorar la cursada de Sociología de la Moda.</p>
+  <div class="thanks-sending" id="send-status">Enviando respuestas…</div>
+  <button class="intro-btn" style="margin-top:20px;background:rgba(0,0,0,.15);font-size:10px;padding:9px 20px;" onclick="showReview()">Ver mis respuestas →</button>
+  <div id="review-panel" style="display:none;margin-top:16px;width:100%;max-width:400px;max-height:45vh;overflow-y:auto;border-radius:10px;background:rgba(255,255,255,.85);padding:14px 16px;"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  CONFIGURATION — replace with your Apps Script URL
+// ═══════════════════════════════════════════════════════
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/TU_SCRIPT_ID_AQUI/exec';
+// ^^^^^ Reemplazá TU_SCRIPT_ID_AQUI con tu URL de Apps Script
+
+// ═══════════════════════════════════════════════════════
+//  SURVEY DEFINITION
+// ═══════════════════════════════════════════════════════
+const SECTIONS = [
+  {
+    id:'s1', num:1, title:'Clases y teoría',
+    questions:[
+      {
+        id:'p1', num:1,
+        text:'En general, las materias teóricas en la universidad te resultan:',
+        type:'radio',
+        options:['Muy interesantes','Interesantes pero a veces difíciles','Más bien pesadas','Bastante difíciles de seguir']
+      },
+      {
+        id:'p2', num:2,
+        text:'¿Qué aspectos de las materias teóricas te resultan más difíciles?',
+        type:'checkbox', max:3,
+        hint:'Podés elegir hasta 3 opciones',
+        options:['Leer textos teóricos largos','Comprender conceptos abstractos','Mantener la atención durante explicaciones largas','Relacionar teoría con ejemplos concretos','Participar opinando en clase','Escribir trabajos o reflexiones sobre textos','Organizar o resumir la información de la bibliografía']
+      }
+    ]
+  },
+  {
+    id:'s2', num:2, title:'Moda y sociología',
+    questions:[
+      {
+        id:'p3', num:3,
+        text:'¿Qué temas del programa te resultan más interesantes?',
+        type:'checkbox', max:3,
+        hint:'Podés seleccionar hasta 3 opciones',
+        options:['Diferencias sociales y moda (clase, estatus, poder)','Construcción de identidades a través de la vestimenta','Moda, género y sexualidad','Influencia de medios, redes e influencers en tendencias','Cambios históricos de la moda y transformaciones sociales','Industria de la moda, mercado y consumo','Fast fashion, diseño independiente, sustentabilidad','Culturas juveniles, tribus urbanas y estilos de vida']
+      },
+      {
+        id:'p4', num:4,
+        text:'¿Para qué pensás que podría resultarte útil la sociología de la moda?',
+        type:'checkbox', max:3,
+        hint:'Podés seleccionar hasta 3 opciones',
+        options:['Comprender a los usuarios y sus contextos socioculturales','Analizar procesos sociales que influyen en las tendencias','Reflexionar críticamente sobre consumo e industria de la moda','Comprender cómo se construyen los significados de la vestimenta','Relacionar el diseño con procesos culturales e históricos','Aplicar conceptos sociológicos al análisis de la moda','No estoy seguro/a todavía']
+      }
+    ]
+  },
+  {
+    id:'s3', num:3, title:'Modalidad/contenidos/actividades de las clases',
+    questions:[
+      {
+        id:'p5', num:5,
+        text:'¿Qué modalidad de clases considerás más importante para tu formación?',
+        type:'radio',
+        options:['Principalmente clases teóricas','Principalmente clases prácticas','Una combinación equilibrada entre teoría y práctica','Depende del tema o contenido que se trabaje']
+      },
+      {
+        id:'p6', num:6,
+        text:'¿Qué actividades te resultan más útiles para comprender contenidos teóricos?',
+        type:'checkbox', max:2,
+        hint:'Podés elegir hasta 2 opciones',
+        options:['Exposición oral del docente explicando conceptos','Análisis de fragmentos de la bibliografía en clase','Presentación de ejemplos concretos (casos, imágenes)','Debate o discusión grupal','Ejercicios de análisis o aplicación de conceptos','Elaboración de esquemas o mapas conceptuales']
+      },
+      {
+        id:'p7', num:7,
+        text:'¿Qué tan cómodo/a te sentís realizando estas actividades?',
+        type:'matrix',
+        cols:['Muy cómodo','Bastante','Poco','Nada'],
+        rows:[
+          {key:'p7_1',label:'Leer textos y elaborar resúmenes'},
+          {key:'p7_2',label:'Analizar fenómenos culturales en grupo'},
+          {key:'p7_3',label:'Investigar sobre temas específicos'},
+          {key:'p7_4',label:'Presentaciones visuales o exposiciones'},
+          {key:'p7_5',label:'Trabajos prácticos con conceptos teóricos'},
+          {key:'p7_6',label:'Participar en debates en clase'},
+          {key:'p7_7',label:'Proyectos de investigación o análisis'},
+        ]
+      }
+    ]
+  },
+  {
+    id:'s4', num:4, title:'Herramientas digitales',
+    questions:[
+      {
+        id:'p8', num:8,
+        text:'En relación con el uso de herramientas digitales para estudiar, tu experiencia es:',
+        type:'radio',
+        options:['Me resulta fácil, las uso con frecuencia','Me manejo bien con herramientas básicas','A veces me cuesta, pero puedo usarlas','Me resulta difícil trabajar con ellas']
+      },
+      {
+        id:'p9', num:9,
+        text:'Respecto al uso de inteligencia artificial, ¿cuál describe mejor tu experiencia?',
+        type:'radio',
+        options:['Las utilizo habitualmente','Las utilizo ocasionalmente','Sé qué son pero casi no las uso','No sé cómo funcionan pero me interesa aprender','No me interesa utilizarlas']
+      },
+      {
+        id:'p10', num:10,
+        text:'¿Para qué usás las herramientas de inteligencia artificial?',
+        type:'checkbox', max:3,
+        hint:'Podés elegir hasta 3 opciones',
+        options:['Charlar, divertirme, buscar cosas cotidianas','Estudiar y resolver actividades de la universidad','Investigar e informarme sobre temas que me interesan','Informarme sobre hechos que no entiendo o desconozco','Resolver problemas cotidianos de orden práctico','Crear imágenes o diseños por diversión','Crear diseños o textos para mi actividad laboral']
+      },
+      {
+        id:'p11', num:11,
+        text:'¿Qué usos de IA te parecerían más interesantes para aprender en la cursada?',
+        type:'checkbox', max:2,
+        hint:'Podés seleccionar hasta 2 opciones',
+        options:['Comprender textos teóricos complejos','Elaborar esquemas, mapas o resúmenes','Realizar presentaciones visuales','Investigar tendencias, diseñadores o fenómenos culturales','Analizar contenidos de redes vinculados a la moda','Explorar herramientas digitales aplicadas al diseño']
+      },
+      {
+        id:'p12', num:12,
+        text:'¿Cuáles herramientas de IA conocés o utilizaste?',
+        type:'checkbox', max:3,
+        hint:'Podés seleccionar hasta 3 opciones',
+        options:['ChatGPT','Gemini','Copilot','Claude','NotebookLM','Grok','DeepSeek','Perplexity']
+      },
+      {
+        id:'p13', num:13,
+        text:'Si pudieras crear fácilmente una aplicación muy sencilla para diseñar propuestas de indumentaria, potenciar tu actividad laboral, conocer las tendencias estéticas actuales y preferencias/elecciones de los usuarios en redes. Imaginala creativamente: ¿Para qué serviría? ¿Cómo funcionaría? ¿Qué problema resolvería? ¿Qué información brindaría?',
+        type:'textarea',
+        hint:'Describila de manera libre y breve',
+        placeholder:'Describí tu idea...'
+      }
+    ]
+  },
+  {
+    id:'s5', num:5, title:'Aportes al docente',
+    questions:[
+      {
+        id:'p14', num:14,
+        text:'¿Qué estrategias de enseñanza o actividades te ayudan más a comprender los contenidos?',
+        type:'text',
+        placeholder:'Tu respuesta breve...'
+      },
+      {
+        id:'p15', num:15,
+        text:'¿Qué actitudes del docente te parecen positivas para generar un buen clima de aprendizaje?',
+        type:'textarea',
+        placeholder:'Describí con detalle...'
+      },
+      {
+        id:'p16', num:16,
+        text:'¿Qué actitudes del docente te parecen negativas para el clima de trabajo y aprendizaje?',
+        type:'textarea',
+        placeholder:'Describí con detalle...'
+      }
+    ]
+  }
+];
+
+// ═══════════════════════════════════════════════════════
+//  BUILD SCREENS
+// ═══════════════════════════════════════════════════════
+const container = document.getElementById('dynamic-screens');
+let allScreenIds = ['screen-cover','screen-intro'];
+const totalQuestions = SECTIONS.reduce((s,sec)=>s+sec.questions.length, 0);
+
+SECTIONS.forEach(section => {
+  // Section title screen
+  const secScreen = document.createElement('div');
+  secScreen.className = 'screen screen-section';
+  secScreen.id = `screen-sec-${section.id}`;
+  const titleHTML = `<div class="section-title-text">${section.title}</div>`;
+  secScreen.innerHTML = `
+    <div class="section-num-badge">Sección ${section.num} de ${SECTIONS.length}</div>
+    ${titleHTML}
+    <button class="section-btn" onclick="advance()">Ver preguntas →</button>`;
+  container.appendChild(secScreen);
+  allScreenIds.push(secScreen.id);
+
+  // Questions
+  section.questions.forEach(q => {
+    const qScreen = document.createElement('div');
+    qScreen.className = 'screen screen-question';
+    qScreen.id = `screen-q-${q.id}`;
+    qScreen.dataset.qid = q.id;
+    qScreen.dataset.qtype = q.type;
+    if(q.max) qScreen.dataset.max = q.max;
+
+    let inner = `
+      <div class="q-num">Pregunta ${q.num} de ${totalQuestions}</div>
+      <div class="q-text">${q.text}</div>`;
+    // Always show hint
+    const autoHint = q.hint || (q.type==='radio' ? 'Elegí 1 opción' : '');
+    if(autoHint) inner += `<div class="q-hint">${autoHint}</div>`;
+
+    if(q.type==='radio'||q.type==='checkbox'){
+      const isBox = q.type==='checkbox';
+      inner += `<div class="options-list">`;
+      q.options.forEach((opt,i) => {
+        inner += `<button class="opt-btn" data-value="${opt}" onclick="selectOpt(this,'${q.id}',${isBox})">
+          <span class="opt-indicator${isBox?' box':''}"></span>
+          <span>${opt}</span>
+        </button>`;
+      });
+      inner += `</div>`;
+    } else if(q.type==='matrix'){
+      inner += `<div style="width:100%;overflow-x:auto;"><table class="matrix-table"><thead><tr>
+        <th style="width:40%">Actividad</th>`;
+      q.cols.forEach(c => inner+=`<th>${c}</th>`);
+      inner += `</tr></thead><tbody>`;
+      q.rows.forEach(row => {
+        inner += `<tr><td>${row.label}</td>`;
+        q.cols.forEach(c => {
+          inner += `<td><input type="radio" class="m-radio" name="${row.key}" value="${c}" onchange="matrixChanged()"/></td>`;
+        });
+        inner += `</tr>`;
+      });
+      inner += `</tbody></table></div>`;
+    } else if(q.type==='textarea'){
+      inner += `<textarea class="q-textarea" id="ta-${q.id}" placeholder="${q.placeholder||''}" oninput="textChanged()"></textarea>`;
+    } else if(q.type==='text'){
+      inner += `<input class="q-input" type="text" id="ti-${q.id}" placeholder="${q.placeholder||''}" oninput="textChanged()"/>`;
+    }
+
+    inner += `<div class="error-flash" id="err-${q.id}"></div>
+    <div class="nav-row">
+      <button class="btn-back" onclick="goBack()">← Atrás</button>
+      <button class="btn-next" id="next-${q.id}" onclick="advance()">Siguiente →</button>
+    </div>`;
+
+    qScreen.innerHTML = inner;
+    container.appendChild(qScreen);
+    allScreenIds.push(qScreen.id);
+  });
+});
+
+allScreenIds.push('screen-thanks');
+
+// ═══════════════════════════════════════════════════════
+//  NAVIGATION STATE
+// ═══════════════════════════════════════════════════════
+let currentIdx = 0;
+const answers = {};
+// Track the furthest screen reached (enables "next" on revisit)
+let maxReached = 0;
+
+function getScreen(idx){ return document.getElementById(allScreenIds[idx]); }
+
+function isLastQuestion(){
+  return allScreenIds[currentIdx+1] === 'screen-thanks';
+}
+
+function isQuestionAnswered(screenEl){
+  if(!screenEl || !screenEl.classList.contains('screen-question')) return true;
+  const qid = screenEl.dataset.qid;
+  const type = screenEl.dataset.qtype;
+  if(type==='radio'||type==='checkbox') return screenEl.querySelectorAll('.opt-btn.selected').length > 0;
+  if(type==='matrix'){
+    const rows = screenEl.querySelectorAll('tbody tr');
+    return Array.from(rows).every(r=>r.querySelector('input:checked'));
+  }
+  if(type==='textarea') { const t=screenEl.querySelector('.q-textarea'); return t&&t.value.trim().length>=3; }
+  if(type==='text')     { const t=screenEl.querySelector('.q-input');    return t&&t.value.trim().length>=3; }
+  return false;
+}
+
+function updateNavButtons(){
+  const screenEl = getScreen(currentIdx);
+  if(!screenEl) return;
+
+  // Back button — always visible from screen 1 onward
+  const backBtns = screenEl.querySelectorAll('.btn-back');
+  backBtns.forEach(b=>{ b.style.visibility = currentIdx > 0 ? 'visible' : 'hidden'; });
+
+  // Next/Submit button — visible only if question answered OR we've been past this screen
+  const nextBtns = screenEl.querySelectorAll('.btn-next, .btn-submit-q');
+  const canAdvance = currentIdx < maxReached || isQuestionAnswered(screenEl);
+  const isLast = isLastQuestion();
+
+  nextBtns.forEach(b=>{
+    b.style.visibility = canAdvance ? 'visible' : 'hidden';
+    if(isLast){
+      b.textContent = 'Revisar antes de enviar →';
+      b.style.background = '#e04000';
+    } else if(currentIdx === allScreenIds.length - 2){
+      b.textContent = 'Revisar antes de enviar →';
+      b.style.background = '#e04000';
+    } else {
+      b.textContent = 'Siguiente →';
+      b.style.background = '#111';
+    }
+  });
+}
+
+function goTo(idx, skipValidation=false){
+  const cur = getScreen(currentIdx);
+  const going_forward = idx > currentIdx;
+
+  // Validate only when going forward on a question screen
+  if(going_forward && !skipValidation && cur.classList.contains('screen-question')){
+    const qid = cur.dataset.qid;
+    if(!validateQ(qid, cur)) return;
+  }
+
+  cur.classList.remove('active');
+  cur.classList.add(going_forward ? 'exit-left' : 'exit-right');
+  setTimeout(()=>{ cur.classList.remove('exit-left','exit-right'); },380);
+
+  currentIdx = idx;
+  if(currentIdx > maxReached) maxReached = currentIdx;
+
+  const next = getScreen(currentIdx);
+  next.classList.remove('exit-left','exit-right');
+  next.classList.add('active');
+  next.scrollTop = 0;
+
+  // If it's the last screen (thanks), submit
+  if(allScreenIds[currentIdx]==='screen-thanks') submitSurvey();
+
+  updateProgress();
+  updateParticles();
+  updateNavButtons();
+
+  // Restart question canvas if present
+  const qcv = next.querySelector('.q-canvas');
+  if(qcv && qcv._restart) qcv._restart();
+}
+
+function advance(){
+  if(currentIdx < allScreenIds.length - 1) goTo(currentIdx + 1);
+}
+function goBack(){
+  if(currentIdx > 0) goTo(currentIdx - 1, true);
+}
+
+// Called on any answer change — reveal next button if newly answered
+function onAnswerChange(screenEl){
+  if(isQuestionAnswered(screenEl)) updateNavButtons();
+}
+
+function updateProgress(){
+  const total = allScreenIds.length - 1;
+  const pct = Math.round(currentIdx / total * 100);
+  document.getElementById('progress-bar').style.width = pct+'%';
+  const qAnswered = Object.keys(answers).filter(k=>!k.includes('_') || k.match(/^p7_[0-9]/)).length;
+  const label = currentIdx >= 2 ? `${qAnswered}/${totalQuestions}` : '';
+  document.getElementById('progress-label').textContent = label;
+}
+
+// ═══════════════════════════════════════════════════════
+//  OPTION SELECTION
+// ═══════════════════════════════════════════════════════
+function selectOpt(btn, qid, isCheckbox){
+  const screen = btn.closest('.screen-question');
+  const max = parseInt(screen.dataset.max||'99');
+  if(isCheckbox){
+    const selected = screen.querySelectorAll('.opt-btn.selected').length;
+    if(!btn.classList.contains('selected') && selected >= max){
+      showErr(qid, `Máximo ${max} opciones`);
+      return;
+    }
+    btn.classList.toggle('selected');
+  } else {
+    screen.querySelectorAll('.opt-btn').forEach(b=>b.classList.remove('selected'));
+    btn.classList.add('selected');
+  }
+  clearErr(qid);
+  collectQ(qid, screen);
+  onAnswerChange(screen);
+}
+
+function matrixChanged(){
+  const screen = document.querySelector('.screen.active');
+  if(screen && screen.dataset.qid){
+    collectQ(screen.dataset.qid, screen);
+    onAnswerChange(screen);
+  }
+}
+function textChanged(){
+  const screen = document.querySelector('.screen.active');
+  if(screen && screen.dataset.qid){
+    collectQ(screen.dataset.qid, screen);
+    onAnswerChange(screen);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  COLLECT ANSWER
+// ═══════════════════════════════════════════════════════
+function collectQ(qid, screen){
+  const type = screen.dataset.qtype;
+  if(type==='radio'){
+    const sel = screen.querySelector('.opt-btn.selected');
+    if(sel) answers[qid] = sel.dataset.value;
+  } else if(type==='checkbox'){
+    answers[qid] = Array.from(screen.querySelectorAll('.opt-btn.selected')).map(b=>b.dataset.value);
+  } else if(type==='matrix'){
+    screen.querySelectorAll('input[type=radio]:checked').forEach(r=>{ answers[r.name] = r.value; });
+  } else if(type==='textarea'){
+    const ta = screen.querySelector('.q-textarea');
+    if(ta) answers[qid] = ta.value.trim();
+  } else if(type==='text'){
+    const ti = screen.querySelector('.q-input');
+    if(ti) answers[qid] = ti.value.trim();
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  VALIDATION
+// ═══════════════════════════════════════════════════════
+function validateQ(qid, screen){
+  const type = screen.dataset.qtype;
+  if(type==='radio'){
+    if(!screen.querySelector('.opt-btn.selected')){showErr(qid,'Por favor, seleccioná una opción.');return false;}
+  } else if(type==='checkbox'){
+    if(!screen.querySelector('.opt-btn.selected')){showErr(qid,'Por favor, seleccioná al menos una opción.');return false;}
+  } else if(type==='matrix'){
+    const rows = screen.querySelectorAll('tbody tr');
+    let allSet=true;
+    rows.forEach(row=>{ if(!row.querySelector('input:checked')) allSet=false; });
+    if(!allSet){showErr(qid,'Por favor, respondé todas las filas.');return false;}
+  } else if(type==='textarea'||type==='text'){
+    const el = screen.querySelector('.q-textarea,.q-input');
+    if(!el||el.value.trim().length<3){showErr(qid,'Por favor, escribí una respuesta.');return false;}
+  }
+  collectQ(qid, screen);
+  return true;
+}
+
+function showErr(qid, msg){ const el=document.getElementById(`err-${qid}`); if(el) el.textContent=msg; }
+function clearErr(qid){ const el=document.getElementById(`err-${qid}`); if(el) el.textContent=''; }
+
+// ═══════════════════════════════════════════════════════
+//  SUBMIT TO GOOGLE SHEETS
+// ═══════════════════════════════════════════════════════
+function submitSurvey(){
+  const payload = {
+    timestamp: new Date().toISOString(),
+    p1: answers.p1||'', p2: [].concat(answers.p2||[]).join(' | '),
+    p3: [].concat(answers.p3||[]).join(' | '), p4: [].concat(answers.p4||[]).join(' | '),
+    p5: answers.p5||'', p6: [].concat(answers.p6||[]).join(' | '),
+    p7_resumenes: answers.p7_1||'', p7_debate_grupal: answers.p7_2||'',
+    p7_investigar: answers.p7_3||'', p7_presentaciones: answers.p7_4||'',
+    p7_tps: answers.p7_5||'', p7_debates_clase: answers.p7_6||'', p7_proyectos: answers.p7_7||'',
+    p8: answers.p8||'', p9: answers.p9||'',
+    p10: [].concat(answers.p10||[]).join(' | '), p11: [].concat(answers.p11||[]).join(' | '),
+    p12: [].concat(answers.p12||[]).join(' | '), p13: answers.p13||'',
+    p14: answers.p14||'', p15: answers.p15||'', p16: answers.p16||''
+  };
+  const el = document.getElementById('send-status');
+  fetch(GOOGLE_SCRIPT_URL, {
+    method:'POST', mode:'no-cors',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(payload)
+  })
+  .then(()=>{ if(el) el.textContent='✓ Respuestas guardadas correctamente.'; })
+  .catch(()=>{ if(el) el.textContent='Sin conexión — respuestas guardadas localmente.'; });
+  try{
+    const stored = JSON.parse(localStorage.getItem('sm_respuestas')||'[]');
+    stored.push(payload);
+    localStorage.setItem('sm_respuestas', JSON.stringify(stored));
+  }catch(e){}
+}
+
+// ═══════════════════════════════════════════════════════
+//  SHARED PARTICLE ENGINE
+//  — Nodes are FIXED in space, only size pulses (heartbeat)
+//  — Travellers slide slowly along edges, also pulse size
+//  — One global tick, incremented once per frame
+// ═══════════════════════════════════════════════════════
+
+function hexRGB(hex){
+  return[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)];
+}
+
+// ── Global canvas (cover / intro / section / thanks) ──
+const canvas = document.getElementById('bg-canvas');
+const ctx    = canvas.getContext('2d');
+let W=0, H=0;
+
+// Shared frame clock — one increment per rAF
+let TICK = 0;
+
+// ── Config per screen type ──
+const CFGS = {
+  cover:   {n:80, d:155, lw:1.1, nodeR:2.4, pulseAmp:0.55, pulseSpeed:0.018,
+             colors:['#333','#7c3aed','#b91c1c','#c9a84c'], edgeA:0.50,
+             tvSpeed:0.0007, tvR:2.5, tvA:0.65, tvPulse:0.60},
+  intro:   {n:50, d:125, lw:0.9, nodeR:2.0, pulseAmp:0.50, pulseSpeed:0.016,
+             colors:['#333','#7c3aed','#c9a84c'],            edgeA:0.42,
+             tvSpeed:0.0006, tvR:2.2, tvA:0.60, tvPulse:0.55},
+  section: {n:60, d:135, lw:1.0, nodeR:2.2, pulseAmp:0.52, pulseSpeed:0.017,
+             colors:['#333','#7c3aed','#f59e0b','#b91c1c'],  edgeA:0.46,
+             tvSpeed:0.0007, tvR:2.3, tvA:0.62, tvPulse:0.58},
+  thanks:  {n:65, d:138, lw:1.0, nodeR:2.1, pulseAmp:0.50, pulseSpeed:0.017,
+             colors:['#333','#22c55e','#7c3aed','#c9a84c'],  edgeA:0.44,
+             tvSpeed:0.0006, tvR:2.2, tvA:0.60, tvPulse:0.56},
+};
+
+// Question canvas config (delicate)
+const QCFG = {n:30, d:140, lw:0.60, nodeR:1.5, pulseAmp:0.45, pulseSpeed:0.014,
+              colors:['#bbb','#c9a84c','#9b7ed4'],            edgeA:0.18,
+              tvSpeed:0.0005, tvR:1.8, tvA:0.40, tvPulse:0.50};
+
+// ── Node: fixed position, pulsing size ──
+function makeNode(x, y, color, phase){
+  return {x, y, color, phase};
+}
+
+// ── Edge list (pairs of node indices within distance d) ──
+function buildEdges(nodes, d){
+  const edges = [];
+  for(let i=0;i<nodes.length;i++)
+    for(let j=i+1;j<nodes.length;j++){
+      const dx=nodes[i].x-nodes[j].x, dy=nodes[i].y-nodes[j].y;
+      if(dx*dx+dy*dy < d*d) edges.push([i,j]);
+    }
+  return edges;
+}
+
+// ── Traveller: slides along one edge, bounces ──
+function makeTraveller(ni, nj, speed){
+  return {ni, nj, t: Math.random(), dir: Math.random()>.5?1:-1,
+          speed, phase: Math.random()*Math.PI*2};
+}
+
+// ── Draw one network frame onto ctx2 ──
+function drawNet(ctx2, W2, H2, nodes, edges, travellers, cfg){
+  ctx2.clearRect(0,0,W2,H2);
+
+  // Edges
+  edges.forEach(([i,j])=>{
+    const a=nodes[i], b=nodes[j];
+    const dx=a.x-b.x, dy=a.y-b.y;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    const alpha=(1-dist/cfg.d)*cfg.edgeA;
+    ctx2.beginPath();
+    ctx2.moveTo(a.x,a.y); ctx2.lineTo(b.x,b.y);
+    ctx2.strokeStyle=`rgba(60,60,60,${alpha})`;
+    ctx2.lineWidth=cfg.lw;
+    ctx2.stroke();
+  });
+
+  // Travellers — slide along edge, pulse size
+  travellers.forEach(tv=>{
+    tv.t += tv.speed * tv.dir;
+    if(tv.t>=1){tv.t=1;tv.dir=-1;}
+    if(tv.t<=0){tv.t=0;tv.dir= 1;}
+    const a=nodes[tv.ni], b=nodes[tv.nj];
+    const tx=a.x+(b.x-a.x)*tv.t;
+    const ty=a.y+(b.y-a.y)*tv.t;
+    const pulse = 1 + cfg.tvPulse * Math.sin(TICK*cfg.pulseSpeed*1.3 + tv.phase);
+    const r = cfg.tvR * pulse;
+    const [rr,gg,bb]=hexRGB(a.color);
+    ctx2.beginPath();
+    ctx2.arc(tx,ty,r,0,Math.PI*2);
+    ctx2.fillStyle=`rgba(${rr},${gg},${bb},${cfg.tvA})`;
+    ctx2.fill();
+  });
+
+  // Nodes — fixed position, pulsing size only
+  nodes.forEach(n=>{
+    const pulse = 1 + cfg.pulseAmp * Math.sin(TICK*cfg.pulseSpeed + n.phase);
+    const r = cfg.nodeR * pulse;
+    const [rr,gg,bb]=hexRGB(n.color);
+    ctx2.beginPath();
+    ctx2.arc(n.x,n.y,r,0,Math.PI*2);
+    ctx2.fillStyle=`rgba(${rr},${gg},${bb},0.82)`;
+    ctx2.fill();
+  });
+}
+
+// ── Global network state ──
+let gNodes=[], gEdges=[], gTravellers=[], gCfg=CFGS.cover;
+
+function buildGlobal(cfg){
+  gCfg = cfg;
+  gNodes = Array.from({length:cfg.n}, (_,i)=>
+    makeNode(Math.random()*W, Math.random()*H,
+             cfg.colors[i%cfg.colors.length], Math.random()*Math.PI*2));
+  gEdges = buildEdges(gNodes, cfg.d);
+  gTravellers = [];
+  gEdges.forEach(([i,j])=>{ if(Math.random()<0.28) gTravellers.push(makeTraveller(i,j,cfg.tvSpeed*(0.8+Math.random()*0.4))); });
+}
+
+function getScreenType(idx){
+  if(idx===0) return 'cover';
+  if(idx===1) return 'intro';
+  if(idx===allScreenIds.length-1) return 'thanks';
+  if(allScreenIds[idx].includes('screen-sec-')) return 'section';
+  return 'question';
+}
+
+function updateParticles(){
+  const type = getScreenType(currentIdx);
+  const isQ = type==='question';
+  canvas.style.display = isQ ? 'none' : 'block';
+  if(!isQ) buildGlobal(CFGS[type]);
+}
+
+function resize(){
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  buildGlobal(gCfg);
+}
+
+// ── Single rAF loop: tick once, draw global net ──
+function loop(){
+  requestAnimationFrame(loop);
+  TICK++;
+  if(canvas.style.display==='none') return;
+  drawNet(ctx, W, H, gNodes, gEdges, gTravellers, gCfg);
+}
+
+window.addEventListener('resize', resize);
+resize();
+updateParticles();
+loop();
+updateProgress();
+updateNavButtons();
+
+// ── Per-question-screen canvas ──
+function makeQuestionCanvas(screenEl){
+  const cv = document.createElement('canvas');
+  cv.className = 'q-canvas';
+  screenEl.insertBefore(cv, screenEl.firstChild);
+  Array.from(screenEl.children).forEach(ch=>{ if(ch!==cv) ch.style.position='relative'; });
+
+  let qW=0,qH=0,qNodes=[],qEdges=[],qTravellers=[],qRaf=null;
+
+  function qInit(){
+    qW = cv.width  = screenEl.offsetWidth  || window.innerWidth;
+    qH = cv.height = screenEl.offsetHeight || window.innerHeight;
+    const cfg = QCFG;
+    qNodes = Array.from({length:cfg.n},(_,i)=>
+      makeNode(Math.random()*qW, Math.random()*qH,
+               cfg.colors[i%cfg.colors.length], Math.random()*Math.PI*2));
+    qEdges = buildEdges(qNodes, cfg.d);
+    qTravellers = [];
+    qEdges.forEach(([i,j])=>{ if(Math.random()<0.28) qTravellers.push(makeTraveller(i,j,cfg.tvSpeed*(0.8+Math.random()*0.4))); });
+  }
+
+  function qDraw(){
+    drawNet(cv.getContext('2d'), qW, qH, qNodes, qEdges, qTravellers, QCFG);
+    qRaf = requestAnimationFrame(qDraw);
+  }
+
+  cv._restart = ()=>{ if(qRaf){cancelAnimationFrame(qRaf);qRaf=null;} qInit(); qDraw(); };
+
+  return cv;
+}
+
+// ── Attach to all question screens ──
+document.querySelectorAll('.screen-question').forEach(s=>{ s._qcv=makeQuestionCanvas(s); });
+
+// ── REVIEW PANEL — show answers on thanks screen ──
+function showReview(){
+  const panel = document.getElementById('review-panel');
+  const btn = panel.previousElementSibling;
+  if(panel.style.display !== 'none'){ panel.style.display='none'; btn.textContent='Ver mis respuestas →'; return; }
+
+  // Build question label map from SECTIONS
+  const qMap = {};
+  SECTIONS.forEach(sec => sec.questions.forEach(q => { qMap[q.id] = `P${q.num}. ${q.text.slice(0,55)}${q.text.length>55?'…':''}`; }));
+
+  // Matrix row labels
+  const matrixLabels = {
+    p7_1:'Resúmenes',p7_2:'Debate grupal',p7_3:'Investigar',
+    p7_4:'Presentaciones',p7_5:'Trabajos prácticos',p7_6:'Debates en clase',p7_7:'Proyectos'
+  };
+
+  let html = '';
+  Object.entries(answers).forEach(([key, val])=>{
+    let label = qMap[key] || (matrixLabels[key] ? `P7 · ${matrixLabels[key]}` : null);
+    if(!label) return;
+    const display = Array.isArray(val) ? val.join(', ') : val;
+    if(!display) return;
+    html += `<div style="margin-bottom:10px;border-left:2px solid #e04000;padding-left:10px;">
+      <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:1px;color:#888;text-transform:uppercase;margin-bottom:3px;">${label}</div>
+      <div style="font-family:'Raleway',sans-serif;font-size:12px;color:#111;line-height:1.4;">${display}</div>
+    </div>`;
+  });
+
+  panel.innerHTML = html || '<p style="font-size:12px;color:#888;text-align:center;">No hay respuestas registradas.</p>';
+  panel.style.display = 'block';
+  btn.textContent = 'Cerrar →';
+}
+
+
+
+</script>
+</body>
+</html>
