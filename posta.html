@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Resultados · Sociología de la Moda</title>
+<link href="https://fonts.googleapis.com/css2?family=PT+Serif:wght@400;700&family=Montserrat:wght@300;400;500;700;900&family=Raleway:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;background:#111;font-family:'Raleway',sans-serif;overflow:hidden;}
+
+#wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;}
+#presWrap{position:relative;width:100vw;max-width:calc(100vh*16/9);aspect-ratio:16/9;}
+#pres{width:100%;height:100%;position:relative;overflow:hidden;box-shadow:0 20px 80px rgba(0,0,0,.9);}
+.scaler{position:absolute;top:0;left:0;width:960px;height:540px;transform-origin:top left;}
+
+/* ── SLIDE SYSTEM ── */
+.sl{
+  position:absolute;top:0;left:0;width:960px;height:540px;
+  background:#fff;overflow:hidden;display:flex;flex-direction:column;
+  transform:translateX(108%);opacity:0;pointer-events:none;
+  transition:transform .48s cubic-bezier(.4,0,.2,1),opacity .36s ease;
+}
+.sl::before{content:'';position:absolute;left:0;top:0;width:4px;height:100%;background:#e04000;z-index:10;pointer-events:none;}
+.sl.no-trans{transition:none!important;}
+.sl.active{transform:translateX(0)!important;opacity:1;pointer-events:all;}
+.sl.sl-left{transform:translateX(-108%)!important;opacity:0;}
+
+.sl-canvas{position:absolute;inset:0;z-index:1;pointer-events:all;}
+.sl-inner{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;padding:20px 40px 16px 46px;pointer-events:none;}
+.slide-id{position:absolute;bottom:9px;left:12px;z-index:5;font-family:'Montserrat',sans-serif;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:rgba(0,0,0,.18);}
+
+#progbar{position:absolute;bottom:0;left:0;width:100%;height:3px;background:rgba(0,0,0,.07);}
+#pbar{height:3px;background:#e04000;transition:width .4s ease;}
+
+/* controls */
+.controls{width:100%;display:flex;gap:8px;align-items:center;padding:7px 12px;background:#0a0a14;border-top:1px solid #1a1a2e;flex-wrap:wrap;}
+.btn{background:#1e1e3a;color:#a78bfa;border:1px solid #2d1b69;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:11px;font-family:'Montserrat',sans-serif;white-space:nowrap;transition:background .15s;}
+.btn:hover{background:#2d1b69;}
+.btn-red{background:#e04000;color:#fff;border-color:#e04000;}
+.btn-red:hover{background:#c93800;}
+.btn-green{background:#15803d;color:#fff;border-color:#15803d;}
+.btn-green:hover{background:#166534;}
+#cnt{color:#6b7280;font-size:11px;min-width:70px;text-align:center;}
+
+/* thumbs */
+#thumbbar{display:flex;gap:4px;padding:5px 10px;background:#07070f;border-top:1px solid #111;overflow-x:auto;width:100%;max-width:calc(100vh*16/9);}
+#thumbbar::-webkit-scrollbar{height:3px;}
+#thumbbar::-webkit-scrollbar-thumb{background:#2d1b69;border-radius:3px;}
+.thumb{width:68px;height:38px;border-radius:3px;cursor:pointer;flex-shrink:0;border:1.5px solid #222;background:#fff;font-size:7px;display:flex;align-items:center;justify-content:center;color:#aaa;font-family:'Montserrat',sans-serif;}
+.thumb.on{border-color:#e04000;color:#e04000;}
+
+/* upload panel */
+#upload-panel{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:rgba(8,8,16,.97);}
+.ubox{background:#0d0d1a;border:1px solid #2d1b69;border-radius:16px;padding:36px 44px;text-align:center;max-width:520px;box-shadow:0 32px 80px rgba(0,0,0,.7);}
+.ubox h1{font-family:'PT Serif',serif;font-weight:700;font-size:26px;color:#fff;margin-bottom:8px;}
+.ubox h1 em{font-style:normal;background:rgba(224,64,0,.55);padding:0 8px;}
+.ubox p{font-size:12px;color:#6b7280;line-height:1.7;margin-bottom:16px;}
+.gbtn{width:100%;background:#15803d;border:1px solid #15803d;color:#fff;border-radius:8px;padding:13px 22px;font-family:'Montserrat',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:.2s;margin-bottom:14px;letter-spacing:.5px;}
+.gbtn:hover{background:#166534;}
+.gbtn:disabled{background:#374151;border-color:#374151;cursor:wait;}
+.uzone{border:2px dashed #2d1b69;border-radius:10px;padding:22px;margin-bottom:12px;cursor:pointer;transition:.2s;}
+.uzone:hover{border-color:#e04000;}
+.uzone input{display:none;}
+.uzone .ico{font-size:26px;margin-bottom:5px;}
+.uzone label{font-family:'Montserrat',sans-serif;font-size:11px;color:#a78bfa;letter-spacing:1px;cursor:pointer;}
+.dbtn{background:transparent;border:1px solid #333;color:#555;border-radius:7px;padding:9px 22px;font-family:'Montserrat',sans-serif;font-size:11px;cursor:pointer;transition:.2s;}
+.dbtn:hover{border-color:#e04000;color:#e04000;}
+#load-msg{min-height:18px;font-family:'Montserrat',sans-serif;font-size:11px;color:#6b7280;margin-top:10px;}
+#load-msg.ok{color:#22c55e;}
+#load-msg.err{color:#ef4444;}
+
+/* ── TYPOGRAPHY (identical to mobile form) ── */
+.t-badge{font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(0,0,0,.35);}
+.t-cover-title{font-family:'PT Serif',serif;font-weight:700;font-size:40px;color:#111;background:rgba(224,64,0,.5);padding:9px 20px;display:inline-block;line-height:1.15;}
+.t-cover-sub{font-family:'Montserrat',sans-serif;font-weight:500;font-size:18px;color:#111;background:rgba(240,184,48,.5);padding:5px 14px;display:inline-block;margin-top:8px;}
+.t-sec-title{font-family:'PT Serif',serif;font-weight:700;font-size:30px;color:#111;background:rgba(224,64,0,.5);padding:9px 22px;display:inline-block;line-height:1.2;max-width:840px;text-align:center;}
+.t-qnum{font-family:'Montserrat',sans-serif;font-size:8.5px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(0,0,0,.32);margin-bottom:4px;}
+.t-qtxt{font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;color:#111;background:rgba(240,184,48,.45);padding:5px 10px;line-height:1.45;display:inline;}
+.q-hint{font-family:'Montserrat',sans-serif;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(0,0,0,.26);margin-top:5px;margin-bottom:8px;}
+
+/* ── DONUT: centered, large, legend grid below ── */
+.donut-wrap{display:flex;flex-direction:column;align-items:center;width:100%;flex:1;justify-content:center;gap:14px;}
+.dleg{display:grid;gap:6px 28px;width:100%;max-width:860px;}
+.dleg-item{display:flex;align-items:flex-start;gap:7px;min-width:0;}
+.dleg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.dleg-txt{font-family:'Raleway',sans-serif;font-size:12px;color:#222;flex:1;line-height:1.4;min-width:0;}
+.dleg-pct{font-family:'Montserrat',sans-serif;font-size:12px;font-weight:700;white-space:nowrap;margin-left:4px;}
+
+/* ── LOLLIPOP: no truncation, full width, thick line ── */
+.lol{display:flex;flex-direction:column;width:100%;justify-content:center;}
+.lol-row{display:flex;align-items:center;gap:10px;padding:3px 0;}
+.lol-lbl{font-family:'Raleway',sans-serif;font-size:11px;color:#222;flex:0 0 255px;text-align:right;line-height:1.4;white-space:normal;word-wrap:break-word;}
+.lol-track{flex:1;height:9px;background:rgba(0,0,0,.07);border-radius:9px;position:relative;}
+.lol-fill{position:absolute;left:0;top:0;height:9px;border-radius:9px;}
+.lol-dot{width:18px;height:18px;border-radius:50%;position:absolute;top:50%;transform:translate(-50%,-50%);}
+.lol-pct{font-family:'Montserrat',sans-serif;font-weight:700;font-size:11px;white-space:nowrap;min-width:36px;text-align:right;}
+
+/* ── STACKED BARS: tall, full width, no truncation ── */
+.sbar-wrap{display:flex;flex-direction:column;width:100%;flex:1;justify-content:center;}
+.sbar-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+.sbar-lbl{font-family:'Raleway',sans-serif;font-size:11px;color:#333;flex:0 0 196px;text-align:right;line-height:1.35;white-space:normal;}
+.sbar-segs{display:flex;flex:1;height:30px;border-radius:4px;overflow:hidden;gap:1px;}
+.sbar-seg{display:flex;align-items:center;justify-content:center;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;color:rgba(255,255,255,.95);}
+
+/* ── BUBBLES: full-slide distributed grid ── */
+.bub-grid{display:grid;width:100%;flex:1;place-items:center;}
+.bub-cell{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.bub-circle{border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.bub-lbl{font-family:'Raleway',sans-serif;font-size:10.5px;color:#333;text-align:center;line-height:1.35;font-weight:600;}
+
+/* ── AI TAGS: large with emoji icons ── */
+.ai-tags-wrap{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center;width:100%;flex:1;align-content:center;}
+.ai-tag{display:flex;align-items:center;gap:10px;border-radius:14px;padding:14px 22px;border-width:2.5px;border-style:solid;}
+.ai-tag-icon{font-size:26px;line-height:1;flex-shrink:0;}
+.ai-tag-body{display:flex;flex-direction:column;gap:1px;}
+.ai-tag-name{font-family:'Montserrat',sans-serif;font-weight:700;font-size:16px;line-height:1.1;}
+.ai-tag-pct{font-family:'Montserrat',sans-serif;font-weight:900;font-size:22px;line-height:1;}
+
+/* ── QUOTE CARD: one per slide ── */
+.qcard-slide{display:flex;flex-direction:column;flex:1;justify-content:center;}
+.qcard-full{border-left:4px solid #e04000;padding:18px 22px;background:rgba(224,64,0,.035);border-radius:0 10px 10px 0;}
+.qcard-full p{font-family:'Raleway',sans-serif;font-size:14px;color:#1a1a1a;line-height:1.85;}
+.q-counter{font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(0,0,0,.28);margin-top:12px;text-align:right;}
+</style>
+</head>
+<body>
+
+<!-- UPLOAD PANEL -->
+<div id="upload-panel">
+  <div class="ubox">
+    <h1>Resultados · <em>Sociología</em><br/>de la Moda</h1>
+    <p>Descargá los datos directamente desde Google Sheets<br/>o subí un archivo JSON exportado manualmente.</p>
+    <button class="gbtn" id="fetchBtn" onclick="fetchFromSheets()">
+      ⬇ Descargar datos desde Google Sheets
+    </button>
+    <div class="uzone" onclick="document.getElementById('fi').click()">
+      <div class="ico">📂</div>
+      <input type="file" id="fi" accept=".json,.csv" onchange="loadFile(event)"/>
+      <label>Seleccionar archivo JSON o CSV</label>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button class="dbtn" onclick="loadDemo()">Ver datos de demo →</button>
+    </div>
+    <div id="load-msg"></div>
+  </div>
+</div>
+
+<!-- PRESENTATION -->
+<div id="wrap">
+  <div id="presWrap">
+    <div id="pres">
+      <div class="scaler" id="scaler"></div>
+      <div id="progbar"><div id="pbar"></div></div>
+    </div>
+    <div class="controls">
+      <button class="btn" onclick="prev()">◀ Anterior</button>
+      <button class="btn" onclick="next()">Siguiente ▶</button>
+      <div id="cnt">– / –</div>
+      <button class="btn" onclick="toggleFS()">⛶ Pantalla completa</button>
+      <button class="btn-green btn" onclick="fetchFromSheets()">⬇ Actualizar datos</button>
+      <button class="btn-red btn" onclick="document.getElementById('upload-panel').style.display='flex'">⬆ Cargar archivo</button>
+    </div>
+  </div>
+  <div id="thumbbar"></div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════════════
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbzGotakrOM559NwLQzP981f4LV2FTnCuWwyCOXVVZEBRDhkcfzZWYNtQv3kvVhbMlxXdg/exec';
+
+// ══════════════════════════════════════════════════════
+//  PALETTE + UTILS
+// ══════════════════════════════════════════════════════
+const PAL=['#e04000','#c9a84c','#7c3aed','#06b6d4','#22c55e','#f59e0b','#a855f7','#0ea5e9','#ef4444','#84cc16'];
+function palA(i,a){const[r,g,b]=hRGB(PAL[i%PAL.length]);return`rgba(${r},${g},${b},${a??1})`;}
+function hRGB(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];}
+function pct(c,n){return n?Math.round(c/n*100):0;}
+function freq(data,key){
+  const c={};
+  data.forEach(r=>(r[key]||'').split(' | ').forEach(x=>{x=x.trim();if(x)c[x]=(c[x]||0)+1;}));
+  return Object.entries(c).sort((a,b)=>b[1]-a[1]);
+}
+
+// ══════════════════════════════════════════════════════
+//  GLOBAL TICK
+// ══════════════════════════════════════════════════════
+let TICK=0;(function loop(){TICK++;requestAnimationFrame(loop);})();
+
+// ══════════════════════════════════════════════════════
+//  PARTICLE NETWORK (identical to mobile form engine)
+// ══════════════════════════════════════════════════════
+const NCFG={
+  cover:  {n:90,d:160,lw:1.1,nodeR:2.4,pAmp:.55,pSpd:.018,colors:['#333','#7c3aed','#b91c1c','#c9a84c'],edgeA:.48,tvSpd:.0007,tvR:2.5,tvA:.60,tvP:.55},
+  section:{n:72,d:150,lw:1.0,nodeR:2.3,pAmp:.52,pSpd:.017,colors:['#333','#7c3aed','#f59e0b','#b91c1c'],edgeA:.44,tvSpd:.0007,tvR:2.4,tvA:.58,tvP:.54},
+  data:   {n:28,d:162,lw:.55,nodeR:1.5,pAmp:.40,pSpd:.013,colors:['#ccc','#d4b87a','#b8a4e8'],edgeA:.14,tvSpd:.0005,tvR:1.7,tvA:.34,tvP:.42},
+};
+function buildNet(cfg,W,H){
+  const nodes=Array.from({length:cfg.n},(_,i)=>({
+    bx:Math.random()*W,by:Math.random()*H,ox:0,oy:0,vx:0,vy:0,
+    color:cfg.colors[i%cfg.colors.length],phase:Math.random()*Math.PI*2
+  }));
+  const edges=[];
+  for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){
+    const dx=nodes[i].bx-nodes[j].bx,dy=nodes[i].by-nodes[j].by;
+    if(dx*dx+dy*dy<cfg.d*cfg.d)edges.push([i,j]);
+  }
+  const tv=[];
+  edges.forEach(([i,j])=>{if(Math.random()<.28)tv.push({ni:i,nj:j,t:Math.random(),dir:Math.random()>.5?1:-1,spd:cfg.tvSpd*(0.8+Math.random()*.4),phase:Math.random()*Math.PI*2});});
+  return{nodes,edges,tv,cfg};
+}
+function drawNet(ctx,W,H,net){
+  const{nodes,edges,tv,cfg}=net;
+  ctx.clearRect(0,0,W,H);
+  nodes.forEach(n=>{n.vx*=.88;n.vy*=.88;n.ox=Math.max(-35,Math.min(35,(n.ox+n.vx)*.96));n.oy=Math.max(-35,Math.min(35,(n.oy+n.vy)*.96));});
+  const px=n=>n.bx+n.ox,py=n=>n.by+n.oy;
+  edges.forEach(([i,j])=>{
+    const a=nodes[i],b=nodes[j],d=Math.hypot(px(a)-px(b),py(a)-py(b));
+    ctx.beginPath();ctx.moveTo(px(a),py(a));ctx.lineTo(px(b),py(b));
+    ctx.strokeStyle=`rgba(60,60,60,${(1-d/cfg.d)*cfg.edgeA})`;ctx.lineWidth=cfg.lw;ctx.stroke();
+  });
+  tv.forEach(t=>{
+    t.t+=t.spd*t.dir;if(t.t>=1){t.t=1;t.dir=-1;}if(t.t<=0){t.t=0;t.dir=1;}
+    const a=nodes[t.ni],b=nodes[t.nj];
+    const x=px(a)+(px(b)-px(a))*t.t,y=py(a)+(py(b)-py(a))*t.t;
+    const pulse=1+cfg.tvP*Math.sin(TICK*cfg.pSpd*1.3+t.phase);
+    const[r,g,bb]=hRGB(a.color);
+    ctx.beginPath();ctx.arc(x,y,cfg.tvR*pulse,0,Math.PI*2);ctx.fillStyle=`rgba(${r},${g},${bb},${cfg.tvA})`;ctx.fill();
+  });
+  nodes.forEach(n=>{
+    const pulse=1+cfg.pAmp*Math.sin(TICK*cfg.pSpd+n.phase);
+    const[r,g,b]=hRGB(n.color);
+    ctx.beginPath();ctx.arc(px(n),py(n),cfg.nodeR*pulse,0,Math.PI*2);ctx.fillStyle=`rgba(${r},${g},${b},.82)`;ctx.fill();
+  });
+}
+function shakeNet(net,str=16){net.nodes.forEach(n=>{n.vx+=(Math.random()-.5)*str;n.vy+=(Math.random()-.5)*str;});}
+function repelNet(net,mx,my){net.nodes.forEach(n=>{const dx=(n.bx+n.ox)-mx,dy=(n.by+n.oy)-my,d=Math.hypot(dx,dy);if(d<120&&d>0){const f=(120-d)/120*8;n.vx+=dx/d*f;n.vy+=dy/d*f;}});}
+function attachNet(sl,cfgKey){
+  const cv=document.createElement('canvas');cv.className='sl-canvas';cv.width=960;cv.height=540;sl.appendChild(cv);
+  const net=buildNet(NCFG[cfgKey],960,540);const ctx=cv.getContext('2d');let raf=null;
+  function loop(){drawNet(ctx,960,540,net);raf=requestAnimationFrame(loop);}
+  sl._on=()=>{if(!raf)loop();};sl._off=()=>{if(raf){cancelAnimationFrame(raf);raf=null;}};sl._shake=()=>shakeNet(net);
+  function onPtr(cx,cy){const r=cv.getBoundingClientRect();if(r.width===0)return;repelNet(net,(cx-r.left)*(960/r.width),(cy-r.top)*(540/r.height));}
+  cv.addEventListener('mousemove',e=>onPtr(e.clientX,e.clientY),{passive:true});
+  cv.addEventListener('touchmove',e=>{const t=e.touches[0];onPtr(t.clientX,t.clientY);},{passive:true});
+}
+
+// ══════════════════════════════════════════════════════
+//  CHART: DONUT (centered above, legend grid below)
+// ══════════════════════════════════════════════════════
+function chartDonut(entries,n,cols=2){
+  const size=230,r=66,cx=size/2,cy=size/2,circ=2*Math.PI*r;
+  let svg=`<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="display:block;flex-shrink:0">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(0,0,0,.06)" stroke-width="26"/>`;
+  let off=0;
+  entries.slice(0,6).forEach(([,c],i)=>{
+    const frac=c/n,dash=circ*frac;
+    svg+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${PAL[i%PAL.length]}"
+      stroke-width="26" stroke-dasharray="${dash} ${circ-dash}"
+      stroke-dashoffset="${-(off*circ-circ/4)}" style="transform-origin:${cx}px ${cy}px"/>`;
+    off+=frac;
+  });
+  const tp=pct(entries[0]?.[1]||0,n);
+  svg+=`<text x="${cx}" y="${cy-10}" text-anchor="middle" dominant-baseline="middle"
+    style="font-family:'Montserrat';font-weight:900;font-size:28px;fill:#111">${tp}%</text>
+  <text x="${cx}" y="${cy+13}" text-anchor="middle"
+    style="font-family:'Raleway';font-size:9px;fill:#999">mayor resp.</text></svg>`;
+
+  const legend=entries.slice(0,6).map(([lbl,cnt],i)=>{
+    const c=PAL[i%PAL.length],p=pct(cnt,n);
+    return`<div class="dleg-item"><div class="dleg-dot" style="background:${c}"></div><div class="dleg-txt">${lbl}</div><div class="dleg-pct" style="color:${c}">${p}%</div></div>`;
+  }).join('');
+
+  return`<div class="donut-wrap">${svg}<div class="dleg" style="grid-template-columns:repeat(${cols},1fr)">${legend}</div></div>`;
+}
+
+// ══════════════════════════════════════════════════════
+//  CHART: LOLLIPOP (no truncation)
+// ══════════════════════════════════════════════════════
+function chartLollipop(entries,n,maxShow=8){
+  const items=entries.slice(0,maxShow),top=items[0]?.[1]||1;
+  const gap=items.length>6?3:5;
+  return`<div class="lol" style="gap:${gap}px;flex:1">${items.map(([lbl,cnt],i)=>{
+    const p=pct(cnt,n),w=Math.round(cnt/top*100),c=PAL[i%PAL.length];
+    return`<div class="lol-row">
+      <div class="lol-lbl">${lbl}</div>
+      <div class="lol-track">
+        <div class="lol-fill" style="width:${w}%;background:${c}"></div>
+        <div class="lol-dot" style="left:${w}%;background:${c};box-shadow:0 0 0 3px #fff,0 0 0 4.5px ${c}"></div>
+      </div>
+      <div class="lol-pct" style="color:${c}">${p}%</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ══════════════════════════════════════════════════════
+//  CHART: STACKED BARS (full width, tall, no truncation)
+// ══════════════════════════════════════════════════════
+function chartStacked(data,rows,levels,colors){
+  const segs=rows.map(({key,label})=>{
+    const counts={};levels.forEach(l=>counts[l]=0);
+    data.forEach(r=>{if(r[key])counts[r[key]]=(counts[r[key]]||0)+1;});
+    const tot=Object.values(counts).reduce((s,v)=>s+v,0)||1;
+    const bars=levels.map((l,i)=>{
+      const p=Math.round(counts[l]/tot*100);
+      return p>0?`<div class="sbar-seg" style="width:${p}%;background:${colors[i]};min-width:${p>8?'26px':'3px'}">${p>12?p+'%':''}</div>`:'';
+    }).join('');
+    return`<div class="sbar-row"><div class="sbar-lbl">${label}</div><div class="sbar-segs">${bars}</div></div>`;
+  }).join('');
+  return`<div class="sbar-wrap">${segs}</div>`;
+}
+
+// ══════════════════════════════════════════════════════
+//  CHART: BUBBLE GRID (full slide area, label below circle)
+// ══════════════════════════════════════════════════════
+function chartBubbleGrid(entries,n,cols,maxShow){
+  const items=entries.slice(0,maxShow),max=items[0]?.[1]||1;
+  const rows=Math.ceil(items.length/cols);
+  return`<div class="bub-grid" style="grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${rows},1fr)">
+    ${items.map(([lbl,cnt],i)=>{
+      const p=pct(cnt,n),r=30+Math.round((cnt/max)*44),c=PAL[i%PAL.length];
+      return`<div class="bub-cell">
+        <div class="bub-circle" style="width:${r*2}px;height:${r*2}px;background:${c};box-shadow:0 4px 14px ${palA(i,.22)}">
+          <span style="font-family:'Montserrat';font-weight:900;color:#fff;font-size:${r>50?18:15}px">${p}%</span>
+        </div>
+        <div class="bub-lbl" style="max-width:${r*2+20}px">${lbl}</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════
+//  CHART: AI TAGS (large, with emoji icons)
+// ══════════════════════════════════════════════════════
+const AI_ICONS={ChatGPT:'🤖',Gemini:'✨',Copilot:'🧠',Claude:'◈',NotebookLM:'📓',Grok:'⚡',DeepSeek:'🔭',Perplexity:'🔮',MidJourney:'🎨','Dall·E':'🖼️'};
+function chartTagsAI(entries,n,maxShow=8){
+  const top=entries[0]?.[1]||1;
+  return`<div class="ai-tags-wrap">${entries.slice(0,maxShow).map(([lbl,cnt],i)=>{
+    const c=PAL[i%PAL.length],p=pct(cnt,n),icon=AI_ICONS[lbl]||'◆';
+    const scale=0.8+0.2*(cnt/top);
+    const fs=Math.round(14*scale),pfs=Math.round(20*scale);
+    return`<div class="ai-tag" style="background:${palA(i,.1)};border-color:${c};transform:scale(${scale.toFixed(2)});transform-origin:center center">
+      <span class="ai-tag-icon">${icon}</span>
+      <div class="ai-tag-body">
+        <div class="ai-tag-name" style="color:${c};font-size:${fs}px">${lbl}</div>
+        <div class="ai-tag-pct" style="color:${c};font-size:${pfs}px">${p}%</div>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ══════════════════════════════════════════════════════
+//  SLIDE FACTORY
+// ══════════════════════════════════════════════════════
+let slides=[],cur=0;
+
+function makeSlide(netKey,id=''){
+  const sl=document.createElement('div');sl.className='sl';
+  attachNet(sl,netKey);
+  const inner=document.createElement('div');inner.className='sl-inner';sl.appendChild(inner);
+  if(id){const b=document.createElement('div');b.className='slide-id';b.textContent=id;sl.appendChild(b);}
+  document.getElementById('scaler').appendChild(sl);
+  slides.push(sl);
+  return inner;
+}
+function qHead(num,tot,txt){
+  return`<div style="margin-bottom:6px"><div class="t-qnum">Pregunta ${num} de ${tot}</div><span class="t-qtxt">${txt}</span></div>`;
+}
+function secSlide(num,tot,title,qs,bigN){
+  const sl=document.createElement('div');sl.className='sl';attachNet(sl,'section');
+  const big=document.createElement('div');
+  Object.assign(big.style,{position:'absolute',right:'36px',bottom:'12px',fontFamily:"'Montserrat',sans-serif",fontWeight:'900',fontSize:'130px',color:'rgba(0,0,0,.038)',lineHeight:'1',zIndex:'0',pointerEvents:'none'});
+  big.textContent=bigN;sl.appendChild(big);
+  const inner=document.createElement('div');inner.className='sl-inner';
+  inner.innerHTML=`<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;z-index:3">
+    <div class="t-badge" style="margin-bottom:14px">Sección ${num} de ${tot}</div>
+    <div class="t-sec-title">${title}</div>
+    <div style="font-family:'Montserrat';font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(0,0,0,.28);margin-top:14px">${qs}</div>
+  </div>`;
+  sl.appendChild(inner);document.getElementById('scaler').appendChild(sl);slides.push(sl);
+}
+
+// ══════════════════════════════════════════════════════
+//  BUILD ALL SLIDES
+//  Texts exactly matching the mobile form (doc2)
+// ══════════════════════════════════════════════════════
+function build(data){
+  const n=data.length,TQ=13;
+  document.getElementById('scaler').innerHTML='';slides=[];cur=0;
+
+  // ── COVER ──
+  const c0=makeSlide('cover');
+  c0.innerHTML=`<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px">
+    <div style="font-family:'PT Serif',serif;font-weight:700;font-size:28px;color:#111;background:rgba(224,64,0,.5);padding:7px 18px;display:inline-block;line-height:1.15;">Sociología de la Moda</div>
+    <div style="font-family:'Montserrat',sans-serif;font-weight:500;font-size:20px;color:#111;background:rgba(240,184,48,.5);padding:6px 18px;display:inline-block;margin-top:4px;">Encuesta inicial 2026 · Resultados</div>
+    <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(0,0,0,.32);margin-top:8px">Licenciatura en Diseño de Indumentaria y Textil · ${n} respuestas</div>
+  </div>`;
+
+  // ══ S1: Clases y teoría ══
+  secSlide(1,4,'Clases y teoría','Preguntas 1 y 2','01');
+
+  // P1 — radio → DONUT
+  // Mobile options: 'Muy interesantes' | 'Interesantes pero a veces difíciles' | 'Más bien pesadas' | 'Bastante difíciles de seguir'
+  {const s=makeSlide('data','P1');
+  s.innerHTML=`${qHead(1,TQ,'En general, las materias teóricas en la universidad te resultan:')}
+    <div class="q-hint">Selección única</div>
+    ${chartDonut(freq(data,'p1'),n,2)}`;}
+
+  // P2 — checkbox max:3 → LOLLIPOP
+  // Mobile options: 7 items
+  {const s=makeSlide('data','P2');
+  s.innerHTML=`${qHead(2,TQ,'¿Qué aspectos de las materias teóricas te resultan más difíciles?')}
+    <div class="q-hint">Múltiple selección · hasta 3 opciones</div>
+    <div style="flex:1;display:flex;align-items:center">${chartLollipop(freq(data,'p2'),n,7)}</div>`;}
+
+  // ══ S2: Moda y sociología ══
+  secSlide(2,4,'Moda y sociología','Preguntas 3 y 4','02');
+
+  // P3 — checkbox max:3 → LOLLIPOP (8 options, long text)
+  {const s=makeSlide('data','P3');
+  s.innerHTML=`${qHead(3,TQ,'¿Qué temas del programa te resultan más interesantes?')}
+    <div class="q-hint">Múltiple selección · hasta 3 opciones</div>
+    <div style="flex:1;display:flex;align-items:center">${chartLollipop(freq(data,'p3'),n,8)}</div>`;}
+
+  // P4 — checkbox max:3 → LOLLIPOP (7 options)
+  {const s=makeSlide('data','P4');
+  s.innerHTML=`${qHead(4,TQ,'¿Para qué pensás que podría resultarte útil la sociología de la moda?')}
+    <div class="q-hint">Múltiple selección · hasta 3 opciones</div>
+    <div style="flex:1;display:flex;align-items:center">${chartLollipop(freq(data,'p4'),n,7)}</div>`;}
+
+  // ══ S3: Modalidad/contenidos/actividades ══
+  secSlide(3,4,'Modalidad/contenidos/<br/>actividades de las clases','Preguntas 5, 6 y 7','03');
+
+  // P5 — radio → DONUT
+  // Mobile options: 'Principalmente clases teóricas' | 'Principalmente clases prácticas' | 'Una combinación equilibrada entre teoría y práctica' | 'Depende del tema o contenido que se trabaje'
+  {const s=makeSlide('data','P5');
+  s.innerHTML=`${qHead(5,TQ,'¿Qué modalidad de clases considerás más importante para tu formación?')}
+    <div class="q-hint">Selección única</div>
+    ${chartDonut(freq(data,'p5'),n,2)}`;}
+
+  // P6 — checkbox max:2 → LOLLIPOP
+  // Mobile options: 6 items
+  {const s=makeSlide('data','P6');
+  s.innerHTML=`${qHead(6,TQ,'¿Qué actividades te resultan más útiles para comprender contenidos teóricos?')}
+    <div class="q-hint">Múltiple selección · hasta 2 opciones</div>
+    <div style="flex:1;display:flex;align-items:center">${chartLollipop(freq(data,'p6'),n,6)}</div>`;}
+
+  // P7 — matrix → STACKED BARS (full width, tall)
+  // Mobile row keys: p7_1…p7_7 → mapped in Apps Script to p7_resumenes etc.
+  // Mobile cols: 'Muy cómodo' | 'Bastante' | 'Poco' | 'Nada'
+  {const s=makeSlide('data','P7');
+  const lvls=['Muy cómodo','Bastante','Poco','Nada'];
+  const clrs=['#22c55e','#06b6d4','#f59e0b','#ef4444'];
+  // Labels exactly from mobile (p7 rows)
+  const matRows=[
+    {key:'p7_resumenes',     label:'Leer textos y elaborar resúmenes'},
+    {key:'p7_debate_grupal', label:'Analizar fenómenos culturales en grupo'},
+    {key:'p7_investigar',    label:'Investigar sobre temas específicos'},
+    {key:'p7_presentaciones',label:'Presentaciones visuales o exposiciones'},
+    {key:'p7_tps',           label:'Trabajos prácticos con conceptos teóricos'},
+    {key:'p7_debates_clase', label:'Participar en debates en clase'},
+    {key:'p7_proyectos',     label:'Proyectos de investigación o análisis'},
+  ];
+  s.innerHTML=`${qHead(7,TQ,'¿Qué tan cómodo/a te sentís realizando estas actividades?')}
+    ${chartStacked(data,matRows,lvls,clrs)}
+    <div style="display:flex;gap:16px;margin-top:8px;flex-wrap:wrap;flex-shrink:0">
+      ${lvls.map((l,i)=>`<div style="display:flex;align-items:center;gap:5px;font-family:'Raleway';font-size:10px;color:#555">
+        <div style="width:10px;height:10px;border-radius:2px;background:${clrs[i]}"></div>${l}</div>`).join('')}
+    </div>`;}
+
+  // ══ S4: Herramientas digitales ══
+  secSlide(4,4,'Herramientas digitales','Preguntas 8 a 13','04');
+
+  // P8 — radio → DONUT
+  // Mobile options: 4 items (Me resulta fácil… | Me manejo bien… | A veces me cuesta… | Me resulta difícil…)
+  {const s=makeSlide('data','P8');
+  s.innerHTML=`${qHead(8,TQ,'En relación con el uso de herramientas digitales para estudiar, tu experiencia es:')}
+    <div class="q-hint">Selección única</div>
+    ${chartDonut(freq(data,'p8'),n,2)}`;}
+
+  // P9 — radio → DONUT
+  // Mobile options: 5 items (Las utilizo habitualmente | ocasionalmente | Sé qué son pero… | No sé cómo funcionan… | No me interesa…)
+  {const s=makeSlide('data','P9');
+  s.innerHTML=`${qHead(9,TQ,'Respecto al uso de inteligencia artificial, ¿cuál describe mejor tu experiencia?')}
+    <div class="q-hint">Selección única</div>
+    ${chartDonut(freq(data,'p9'),n,2)}`;}
+
+  // P10 — checkbox max:3 → LOLLIPOP (7 options)
+  {const s=makeSlide('data','P10');
+  s.innerHTML=`${qHead(10,TQ,'¿Para qué usás las herramientas de inteligencia artificial?')}
+    <div class="q-hint">Múltiple selección · hasta 3 opciones</div>
+    <div style="flex:1;display:flex;align-items:center">${chartLollipop(freq(data,'p10'),n,7)}</div>`;}
+
+  // P11 — checkbox max:2 → BUBBLE GRID (6 options, 3×2 grid)
+  // Full-slide distributed, label below each bubble, no truncation
+  {const s=makeSlide('data','P11');
+  s.innerHTML=`${qHead(11,TQ,'¿Qué usos de IA te parecerían más interesantes para aprender en la cursada?')}
+    <div class="q-hint">Múltiple selección · hasta 2 opciones</div>
+    ${chartBubbleGrid(freq(data,'p11'),n,3,6)}`;}
+
+  // P12 — checkbox max:3 → AI TAGS con iconos grandes
+  // Mobile options: ChatGPT | Gemini | Copilot | Claude | NotebookLM | Grok | DeepSeek | Perplexity
+  {const s=makeSlide('data','P12');
+  s.innerHTML=`${qHead(12,TQ,'¿Cuáles herramientas de IA conocés o utilizaste?')}
+    <div class="q-hint">Múltiple selección · hasta 3 opciones</div>
+    ${chartTagsAI(freq(data,'p12'),n,8)}`;}
+
+  // P13 — textarea → UNA DIAPOSITIVA POR RESPUESTA
+  // Texto completo del mobile (exacto):
+  const P13_TEXT='Si pudieras crear fácilmente una aplicación muy sencilla para diseñar propuestas de indumentaria, potenciar tu actividad laboral, conocer las tendencias estéticas actuales y preferencias/elecciones de los usuarios en redes. Imaginala creativamente: ¿Para qué serviría? ¿Cómo funcionaría? ¿Qué problema resolvería? ¿Qué información brindaría?';
+  const p13list=[...new Set(data.map(r=>(r.p13||'').trim()).filter(v=>v.length>8))].slice(0,14);
+  if(!p13list.length){
+    const s=makeSlide('data','P13');
+    s.innerHTML=`${qHead(13,TQ,P13_TEXT)}
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;color:#aaa;font-family:'Raleway';font-size:14px">Sin respuestas aún.</div>`;
+  } else {
+    p13list.forEach((text,idx)=>{
+      const s=makeSlide('data',`P13 · ${idx+1}/${p13list.length}`);
+      s.innerHTML=`${qHead(13,TQ,P13_TEXT)}
+        <div class="qcard-slide">
+          <div class="qcard-full"><p>${text}</p></div>
+          <div class="q-counter">Respuesta ${idx+1} de ${p13list.length}</div>
+        </div>`;
+    });
+  }
+
+  // ── SLIDE DISPARADOR SÍNTESIS IA ──
+  {
+    const s=makeSlide('cover','IA');
+    s.innerHTML=`
+      <div style="position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 60px;pointer-events:all;text-align:center">
+        <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(0,0,0,.32);margin-bottom:16px">Síntesis generativa · Claude AI</div>
+        <div style="font-family:'PT Serif',serif;font-weight:700;font-size:28px;color:#111;background:rgba(224,64,0,.5);padding:9px 22px;display:inline-block;line-height:1.2;margin-bottom:10px">Hipótesis de aplicaciones</div>
+        <div style="font-family:'Montserrat',sans-serif;font-weight:500;font-size:14px;color:#111;background:rgba(240,184,48,.5);padding:6px 18px;display:inline-block;margin-bottom:28px">basadas en las propuestas del grupo</div>
+        <div style="font-family:'Raleway',sans-serif;font-size:12px;color:rgba(0,0,0,.45);line-height:1.8;max-width:560px;margin-bottom:32px">
+          Claude analizará todas las respuestas y sintetizará <strong>3 conceptos de apps</strong> centradas en datos de redes, tendencias e inputs del usuario.<br/>
+          Cada app incluirá un <strong>prompt listo para previsualizar</strong> su interfaz en Claude Artifacts.
+        </div>
+        <div id="ai-status" style="font-family:'Montserrat',sans-serif;font-size:10px;letter-spacing:1px;color:#e04000;min-height:18px;margin-bottom:12px"></div>
+        <button id="ai-btn" onclick="callClaude()"
+          style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:11px;letter-spacing:2px;text-transform:uppercase;background:#111;color:#fff;border:none;border-radius:7px;padding:14px 44px;cursor:pointer">
+          ✦ Generar síntesis con Claude
+        </button>
+      </div>`;
+  }
+  window._p13responses=p13list;
+
+  buildThumbs();
+  if(slides[0]){slides[0].classList.add('no-trans','active');slides[0].offsetHeight;slides[0].classList.remove('no-trans');slides[0]._on?.();}
+  updateUI();scaleSlides();
+}
+
+// ══════════════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════════════
+function show(newIdx){
+  if(!slides.length)return;
+  newIdx=Math.max(0,Math.min(newIdx,slides.length-1));
+  if(newIdx===cur&&slides[cur].classList.contains('active'))return;
+  const dir=newIdx>cur?1:-1,oldIdx=cur;
+  slides[oldIdx]._shake?.();slides[oldIdx]._off?.();
+  if(dir<0){slides[newIdx].classList.add('no-trans');slides[newIdx].classList.remove('active');slides[newIdx].classList.add('sl-left');slides[newIdx].offsetHeight;slides[newIdx].classList.remove('no-trans');}
+  slides[oldIdx].classList.remove('active');if(dir>0)slides[oldIdx].classList.add('sl-left');
+  slides[newIdx].classList.remove('sl-left');slides[newIdx].classList.add('active');slides[newIdx]._shake?.();
+  cur=newIdx;slides[cur]._on?.();updateUI();
+}
+function next(){show(cur+1);}function prev(){show(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' ')next();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prev();});
+let tx=0,ty=0;
+document.getElementById('pres').addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY;},{passive:true});
+document.getElementById('pres').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>40){dx<0?next():prev();}},{passive:true});
+
+function buildThumbs(){const bar=document.getElementById('thumbbar');bar.innerHTML='';slides.forEach((_,i)=>{const d=document.createElement('div');d.className='thumb';d.textContent=i+1;d.onclick=()=>show(i);bar.appendChild(d);});}
+function updateUI(){
+  document.getElementById('cnt').textContent=`${cur+1} / ${slides.length}`;
+  document.getElementById('pbar').style.width=slides.length>1?`${(cur/(slides.length-1))*100}%`:'100%';
+  document.querySelectorAll('.thumb').forEach((t,j)=>t.classList.toggle('on',j===cur));
+  document.querySelector(`.thumb:nth-child(${cur+1})`)?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+}
+
+// ══════════════════════════════════════════════════════
+//  SCALE + FULLSCREEN
+// ══════════════════════════════════════════════════════
+function scaleSlides(){
+  const pw=document.getElementById('presWrap'),sc=document.getElementById('scaler');
+  const scale=Math.min(pw.clientWidth/960,pw.clientHeight/540);
+  sc.style.transform=`scale(${scale})`;
+  sc.style.left=`${(pw.clientWidth-960*scale)/2}px`;
+  sc.style.top=`${(pw.clientHeight-540*scale)/2}px`;
+}
+window.addEventListener('resize',scaleSlides);scaleSlides();
+function toggleFS(){if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.();}
+
+// ══════════════════════════════════════════════════════
+//  CLAUDE API — síntesis de propuestas P13 → 6 slides dinámicas
+// ══════════════════════════════════════════════════════
+let _aiSlidesInserted=false;
+
+async function callClaude(){
+  const btn=document.getElementById('ai-btn');
+  const status=document.getElementById('ai-status');
+  if(!btn)return;
+  const responses=window._p13responses||[];
+
+  btn.disabled=true;
+  if(status){status.textContent='Analizando respuestas…';}
+  if(!document.getElementById('spin-kf')){
+    const st=document.createElement('style');st.id='spin-kf';
+    st.textContent='@keyframes spin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(st);
+  }
+
+  // Build a thematic digest — don't expose raw quotes, just list themes
+  const digest = responses.slice(0,14).map((r,i)=>`- ${r}`).join('\n');
+
+  const prompt=`Sos un diseñador de producto especialista en moda, tecnología y análisis de datos sociales.
+
+Analizá las siguientes propuestas de estudiantes de Diseño de Indumentaria sobre apps que les gustaría tener:
+
+${digest}
+
+A partir de estas propuestas, identificá las GENERALIDADES y tendencias comunes del grupo (no cites a nadie en particular) y diseñá exactamente 3 conceptos de aplicaciones hipotéticas. Criterios obligatorios para cada app:
+1. Debe tener FUNCIONALIDADES OPERATIVAS Y PRÁCTICAS (no conceptuales), que el usuario pueda ejecutar directamente.
+2. Debe basar su valor en DATOS: scraped de redes sociales, datasets públicos de moda/tendencias, o inputs directos del usuario — para VISUALIZAR esos datos de formas útiles.
+3. Debe resolver un problema real y cotidiano del diseñador de indumentaria o del estudiante de moda.
+
+Para cada app incluí también un "prompt_artifact" que sea un prompt completo y detallado para pegar en Claude Artifacts y que genere una previsualización interactiva de la interfaz de la app, simulando su funcionamiento con datos de ejemplo. El prompt debe ser claro y autosuficiente, en español, e indicar explícitamente que genere HTML/JS interactivo con datos simulados realistas de moda.
+
+Respondé SOLO con JSON válido, sin texto antes ni después, sin backticks ni markdown. Formato exacto:
+[
+  {
+    "nombre": "Nombre corto memorable",
+    "tagline": "Una frase de impacto que describe qué hace",
+    "descripcion": "2-3 oraciones sobre el concepto y valor central",
+    "datos": ["Fuente de dato 1 (ej: Instagram API / tendencias)", "Fuente 2", "Fuente 3"],
+    "features": ["Feature operativa 1", "Feature operativa 2", "Feature operativa 3"],
+    "prompt_artifact": "Prompt completo y detallado para Claude Artifacts..."
+  },
+  { ... },
+  { ... }
+]`;
+
+  try{
+    if(status) status.textContent='Conectando con Claude…';
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:2800,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data=await resp.json();
+    const raw=data.content?.find(b=>b.type==='text')?.text||'';
+    let apps;
+    try{apps=JSON.parse(raw.replace(/```json|```/g,'').trim());}
+    catch(e){
+      if(status) status.textContent='Error al parsear respuesta. Reintentá.';
+      btn.disabled=false;return;
+    }
+
+    // Remove previously injected AI slides if regenerating
+    if(_aiSlidesInserted){
+      const scaler=document.getElementById('scaler');
+      const toRemove=scaler.querySelectorAll('.sl[data-ai]');
+      toRemove.forEach(el=>{
+        const idx=slides.indexOf(el);
+        if(idx>-1)slides.splice(idx,1);
+        el.remove();
+      });
+      _aiSlidesInserted=false;
+    }
+
+    // Inject 2 slides per app: concept + prompt
+    const cols=['#e04000','#7c3aed','#06b6d4'];
+    const insertAfterIdx=cur; // insert after trigger slide
+
+    apps.slice(0,3).forEach((a,i)=>{
+      const col=cols[i];
+      const num=i+1;
+
+      // ── SLIDE A: App concept ──
+      const sApp=makeSlideAt('cover',`APP ${num}`,insertAfterIdx+i*2+1);
+      sApp.dataset.ai='1';
+      sApp.innerHTML=`
+        <div style="position:absolute;inset:0;z-index:3;display:flex;flex-direction:row;padding:36px 50px;gap:36px;pointer-events:all;overflow:hidden">
+          <!-- LEFT: identity -->
+          <div style="display:flex;flex-direction:column;justify-content:center;flex:0 0 300px;gap:14px">
+            <div style="font-family:'Montserrat',sans-serif;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:rgba(0,0,0,.32)">App ${num} de 3 · Concepto</div>
+            <div style="font-family:'PT Serif',serif;font-weight:700;font-size:30px;color:${col};line-height:1.1">${a.nombre}</div>
+            <div style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;color:#111;background:rgba(240,184,48,.5);padding:6px 12px;line-height:1.4">${a.tagline}</div>
+            <div style="font-family:'Raleway',sans-serif;font-size:12px;color:#333;line-height:1.75">${a.descripcion}</div>
+          </div>
+          <!-- RIGHT: data + features -->
+          <div style="display:flex;flex-direction:column;flex:1;gap:20px;justify-content:center">
+            <div>
+              <div style="font-family:'Montserrat',sans-serif;font-size:8px;letter-spacing:2.5px;text-transform:uppercase;color:${col};margin-bottom:10px">Fuentes de datos</div>
+              <div style="display:flex;flex-wrap:wrap;gap:7px">
+                ${(a.datos||[]).map(d=>`<div style="background:rgba(0,0,0,.05);border-radius:20px;padding:5px 13px;font-family:'Montserrat',sans-serif;font-size:10px;color:#333;border:1px solid rgba(0,0,0,.1)">${d}</div>`).join('')}
+              </div>
+            </div>
+            <div>
+              <div style="font-family:'Montserrat',sans-serif;font-size:8px;letter-spacing:2.5px;text-transform:uppercase;color:${col};margin-bottom:10px">Funcionalidades clave</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                ${(a.features||[]).map((f,fi)=>`
+                  <div style="display:flex;align-items:flex-start;gap:10px">
+                    <div style="width:20px;height:20px;border-radius:50%;background:${col};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Montserrat';font-weight:900;font-size:10px;color:#fff;margin-top:1px">${fi+1}</div>
+                    <div style="font-family:'Raleway',sans-serif;font-size:12px;color:#222;line-height:1.5;flex:1">${f}</div>
+                  </div>`).join('')}
+              </div>
+            </div>
+          </div>
+        </div>`;
+
+      // ── SLIDE B: Prompt para Artifacts ──
+      const sPrompt=makeSlideAt('cover',`PROMPT ${num}`,insertAfterIdx+i*2+2);
+      sPrompt.dataset.ai='1';
+      const escapedPrompt=(a.prompt_artifact||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const rawPrompt=a.prompt_artifact||'';
+      sPrompt.innerHTML=`
+        <div style="position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;padding:30px 50px 24px;pointer-events:all;overflow:hidden">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;flex-shrink:0">
+            <div style="font-family:'PT Serif',serif;font-weight:700;font-size:16px;color:${col};background:rgba(0,0,0,.04);padding:5px 14px;border-left:4px solid ${col}">${a.nombre}</div>
+            <div style="font-family:'Montserrat',sans-serif;font-size:8px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(0,0,0,.35)">Prompt para Claude Artifacts</div>
+            <button onclick="copyPrompt(this,'${encodeURIComponent(rawPrompt)}')"
+              style="margin-left:auto;font-family:'Montserrat',sans-serif;font-weight:700;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;background:${col};color:#fff;border:none;border-radius:5px;padding:7px 16px;cursor:pointer;flex-shrink:0">
+              ⎘ Copiar prompt
+            </button>
+          </div>
+          <div style="flex:1;background:rgba(0,0,0,.03);border-radius:10px;border:1px solid rgba(0,0,0,.08);padding:18px 20px;overflow-y:auto">
+            <pre style="font-family:'Raleway',sans-serif;font-size:11px;color:#222;line-height:1.75;white-space:pre-wrap;word-break:break-word;margin:0">${escapedPrompt}</pre>
+          </div>
+          <div style="font-family:'Montserrat',sans-serif;font-size:9px;color:rgba(0,0,0,.3);margin-top:10px;text-align:center;flex-shrink:0">
+            Pegá este prompt en claude.ai → seleccioná "Artifacts" para ver la previsualización interactiva
+          </div>
+        </div>`;
+    });
+
+    _aiSlidesInserted=true;
+    buildThumbs();
+    updateUI();
+    scaleSlides();
+    if(status) status.textContent='✓ 3 apps generadas — navegá con → para verlas';
+    btn.textContent='↻ Regenerar';
+    btn.disabled=false;
+    // Auto-advance to first app slide
+    setTimeout(()=>show(cur+1),600);
+
+  }catch(err){
+    if(status) status.textContent=`Error: ${err.message}`;
+    btn.textContent='✦ Reintentar';
+    btn.disabled=false;
+  }
+}
+
+// Insert slide at a specific position in the slides array + DOM
+function makeSlideAt(type,label,pos){
+  const sl=document.createElement('div');
+  sl.className='sl';
+  sl.dataset.label=label||'';
+  const scaler=document.getElementById('scaler');
+  // Insert after slide at pos-1
+  const ref=slides[pos-1];
+  if(ref&&ref.nextSibling) scaler.insertBefore(sl,ref.nextSibling);
+  else scaler.appendChild(sl);
+  slides.splice(pos,0,sl);
+  if(type==='cover'||type==='section') attachNet(sl,'cover');
+  else attachNet(sl,'data');
+  return sl;
+}
+
+function copyPrompt(btn,encoded){
+  const txt=decodeURIComponent(encoded);
+  navigator.clipboard?.writeText(txt).then(()=>{
+    const orig=btn.textContent;btn.textContent='✓ Copiado';
+    setTimeout(()=>btn.textContent=orig,2000);
+  }).catch(()=>{btn.textContent='Error';});
+}
+
+// ══════════════════════════════════════════════════════
+//  FETCH FROM GOOGLE SHEETS (direct, one click)
+// ══════════════════════════════════════════════════════
+function setMsg(txt,cls=''){const el=document.getElementById('load-msg');if(!el)return;el.textContent=txt;el.className=cls;}
+function fetchFromSheets(){
+  const btn=document.getElementById('fetchBtn');
+  if(btn){btn.disabled=true;btn.textContent='Descargando…';}
+  setMsg('Conectando con Google Sheets…');
+  fetch(SCRIPT_URL+'?export=json',{method:'GET'})
+    .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+    .then(data=>{
+      if(!Array.isArray(data)||data.length===0){setMsg('La planilla no tiene datos aún.','err');if(btn){btn.disabled=false;btn.textContent='⬇ Descargar datos desde Google Sheets';}return;}
+      setMsg(`✓ ${data.length} respuestas cargadas.`,'ok');
+      build(data);
+      document.getElementById('upload-panel').style.display='none';
+    })
+    .catch(err=>{
+      // Apps Script returns CORS headers on GET — if still blocked, provide fallback
+      setMsg('','err');
+      document.getElementById('load-msg').innerHTML=
+        `⚠ Error de conexión. <a href="${SCRIPT_URL}?export=json" target="_blank" style="color:#a78bfa">Abrí este link</a>, guardá el JSON y cargalo abajo.`;
+      if(btn){btn.disabled=false;btn.textContent='⬇ Descargar datos desde Google Sheets';}
+    });
+}
+
+// ══════════════════════════════════════════════════════
+//  FILE LOADING
+// ══════════════════════════════════════════════════════
+function loadFile(evt){
+  const file=evt.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      let raw=e.target.result;
+      // Strip BOM if present
+      if(raw.charCodeAt(0)===0xFEFF) raw=raw.slice(1);
+      const isCSV=file.name.toLowerCase().endsWith('.csv');
+      let data=isCSV?parseCSV(raw):JSON.parse(raw);
+      if(!Array.isArray(data)||data.length===0) throw new Error('El archivo no contiene datos válidos.');
+      // Remove timestamp field from display but keep rows intact
+      setMsg(`✓ ${data.length} respuestas cargadas.`,'ok');
+      build(data);
+      document.getElementById('upload-panel').style.display='none';
+    }catch(err){
+      setMsg('Error: '+err.message,'err');
+      alert('No se pudo leer el archivo:\n'+err.message);
+    }
+  };
+  reader.readAsText(file,'UTF-8');
+}
+
+// RFC 4180-compliant CSV parser — handles quoted fields with embedded commas,
+// newlines and escaped quotes (""). Works with Google Sheets exports.
+function parseCSV(text){
+  // Normalize line endings
+  text=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  let i=0,n=text.length;
+
+  function field(){
+    if(i>=n||text[i]==='\n') return '';
+    if(text[i]==='"'){
+      i++; // skip opening quote
+      let s='';
+      while(i<n){
+        if(text[i]==='"'){
+          if(text[i+1]==='"'){s+='"';i+=2;} // escaped quote
+          else{i++;break;}                   // closing quote
+        } else s+=text[i++];
+      }
+      return s.trim();
+    }
+    // Unquoted field: read until comma or newline
+    let start=i;
+    while(i<n&&text[i]!==','&&text[i]!=='\n') i++;
+    return text.slice(start,i).trim();
+  }
+
+  function row(){
+    const cells=[];
+    while(i<n&&text[i]!=='\n'){
+      cells.push(field());
+      if(i<n&&text[i]===',') i++; // skip comma between fields
+    }
+    if(i<n&&text[i]==='\n') i++; // skip newline
+    return cells;
+  }
+
+  if(i>=n) return [];
+  const headers=row();
+  const records=[];
+  while(i<n){
+    if(text[i]==='\n'){i++;continue;} // skip blank lines
+    const vals=row();
+    if(!vals.length||(vals.length===1&&vals[0]==='')) continue;
+    const obj={};
+    headers.forEach((h,j)=>{ if(h) obj[h]=vals[j]??''; });
+    records.push(obj);
+  }
+  return records;
+}
+
+// ══════════════════════════════════════════════════════
+//  DEMO DATA (using EXACT mobile option texts)
+// ══════════════════════════════════════════════════════
+function loadDemo(){
+  const rand=a=>a[Math.floor(Math.random()*a.length)];
+  const pick=(a,k)=>[...a].sort(()=>Math.random()-.5).slice(0,k);
+
+  const p13demos=[
+    'Me imagino una aplicación que analice en tiempo real las publicaciones de moda en Instagram, Pinterest y TikTok y los agrupe en tendencias emergentes por color, silueta y textura. A partir de esa información, sugeriría paletas de color y combinaciones de prendas para trabajar en una colección. También tendría un módulo donde podría cargar mis bocetos y la IA me diría qué tan alineados están con las tendencias detectadas. Para el trabajo de diseño, permitiría exportar fichas técnicas básicas directamente a programas como Illustrator.',
+    'Pensaría en una app que funcione como un archivo histórico de la moda con IA. Podría ingresar una prenda actual subiendo una foto y la aplicación identificaría sus referencias históricas: de qué época proviene la silueta, qué movimiento cultural inspiró el estampado, qué diseñadores influyeron en esa dirección estética. Esto sería útil no solo para diseñar sino para poder explicar el proceso creativo de cada propuesta de una manera fundamentada.',
+    'Me interesaría una herramienta que conecte el análisis sociológico con el diseño concreto. Por ejemplo, que me muestre qué grupos sociales están usando ciertos estilos, sus edades, zonas geográficas y preferencias de consumo. A partir de esos datos podría orientar mis colecciones a mercados más específicos. También incluiría un generador de moodboards automáticos a partir de referencias culturales que yo elija, combinando imágenes de redes, archivo histórico y tendencias actuales.',
+    'Una app que tome mis referencias visuales y conceptuales y desarrolle una narrativa para la colección completa: nombre, concepto central, prendas principales, combinaciones de color y materiales sugeridos. Pero que además evalúe el impacto ambiental de cada propuesta con alternativas más sustentables.',
+    'Imagino una plataforma de investigación de tendencias donde pueda hacer consultas específicas como cuáles son los colores dominantes en el street style de Buenos Aires este mes, o qué prendas están siendo más compartidas por jóvenes de 18 a 25 años en redes sociales.',
+    'Me gustaría una app que integre análisis cultural con herramientas creativas en tres módulos: análisis de qué está sucediendo culturalmente y cómo influye en las tendencias; generación de propuestas visuales con paletas y texturas sugeridas; validación de ideas donde pueda subir mis diseños y la app evalúe su coherencia.',
+    'Una herramienta que cree perfiles de usuario ideal combinando datos demográficos con preferencias estéticas extraídas de redes sociales. Eso generaría insights sobre qué prendas buscan, qué precios están dispuestos a pagar y qué valores les importan.',
+    'Me interesa una app que funcione como asistente de diseño contextualizado: que entienda el territorio cultural donde trabajo y sugiera referencias pertinentes a ese contexto local. No solo tendencias globales sino cómo se traducen en Buenos Aires, en el barrio, en cada subcultura.',
+  ];
+
+  const data=Array.from({length:34},(_,idx)=>({
+    // P1 — opciones exactas del mobile
+    p1:rand(['Muy interesantes','Interesantes pero a veces difíciles','Interesantes pero a veces difíciles','Más bien pesadas','Bastante difíciles de seguir']),
+    // P2 — opciones exactas del mobile
+    p2:pick(['Leer textos teóricos largos','Comprender conceptos abstractos','Mantener la atención durante explicaciones largas','Relacionar teoría con ejemplos concretos','Participar opinando en clase','Escribir trabajos o reflexiones sobre textos','Organizar o resumir la información de la bibliografía'],rand([1,2,3])).join(' | '),
+    // P3 — opciones exactas del mobile
+    p3:pick(['Diferencias sociales y moda (clase, estatus, poder)','Construcción de identidades a través de la vestimenta','Moda, género y sexualidad','Influencia de medios, redes e influencers en tendencias','Cambios históricos de la moda y transformaciones sociales','Industria de la moda, mercado y consumo','Fast fashion, diseño independiente, sustentabilidad','Culturas juveniles, tribus urbanas y estilos de vida'],rand([1,2,3])).join(' | '),
+    // P4 — opciones exactas del mobile
+    p4:pick(['Comprender a los usuarios y sus contextos socioculturales','Analizar procesos sociales que influyen en las tendencias','Reflexionar críticamente sobre consumo e industria de la moda','Comprender cómo se construyen los significados de la vestimenta','Relacionar el diseño con procesos culturales e históricos','Aplicar conceptos sociológicos al análisis de la moda','No estoy seguro/a todavía'],rand([1,2,3])).join(' | '),
+    // P5 — opciones exactas del mobile
+    p5:rand(['Principalmente clases teóricas','Principalmente clases prácticas','Una combinación equilibrada entre teoría y práctica','Una combinación equilibrada entre teoría y práctica','Depende del tema o contenido que se trabaje']),
+    // P6 — opciones exactas del mobile
+    p6:pick(['Exposición oral del docente explicando conceptos','Análisis de fragmentos de la bibliografía en clase','Presentación de ejemplos concretos (casos, imágenes)','Debate o discusión grupal','Ejercicios de análisis o aplicación de conceptos','Elaboración de esquemas o mapas conceptuales'],rand([1,2])).join(' | '),
+    // P7 — keys match Apps Script field map
+    p7_resumenes:     rand(['Muy cómodo','Bastante','Bastante','Poco']),
+    p7_debate_grupal: rand(['Muy cómodo','Bastante','Poco','Nada']),
+    p7_investigar:    rand(['Muy cómodo','Bastante','Bastante','Poco']),
+    p7_presentaciones:rand(['Muy cómodo','Bastante','Poco','Nada']),
+    p7_tps:           rand(['Muy cómodo','Bastante','Poco','Poco']),
+    p7_debates_clase: rand(['Muy cómodo','Bastante','Poco','Nada']),
+    p7_proyectos:     rand(['Muy cómodo','Bastante','Poco','Poco']),
+    // P8 — opciones exactas del mobile (4 opciones)
+    p8:rand(['Me resulta fácil, las uso con frecuencia','Me manejo bien con herramientas básicas','A veces me cuesta, pero puedo usarlas','Me resulta difícil trabajar con ellas']),
+    // P9 — opciones exactas del mobile (5 opciones)
+    p9:rand(['Las utilizo habitualmente','Las utilizo ocasionalmente','Las utilizo ocasionalmente','Sé qué son pero casi no las uso','No sé cómo funcionan pero me interesa aprender','No me interesa utilizarlas']),
+    // P10 — opciones exactas del mobile
+    p10:pick(['Charlar, divertirme, buscar cosas cotidianas','Estudiar y resolver actividades de la universidad','Investigar e informarme sobre temas que me interesan','Informarme sobre hechos que no entiendo o desconozco','Resolver problemas cotidianos de orden práctico','Crear imágenes o diseños por diversión','Crear diseños o textos para mi actividad laboral'],rand([1,2,3])).join(' | '),
+    // P11 — opciones exactas del mobile
+    p11:pick(['Comprender textos teóricos complejos','Elaborar esquemas, mapas o resúmenes','Realizar presentaciones visuales','Investigar tendencias, diseñadores o fenómenos culturales','Analizar contenidos de redes vinculados a la moda','Explorar herramientas digitales aplicadas al diseño'],rand([1,2])).join(' | '),
+    // P12 — opciones exactas del mobile
+    p12:pick(['ChatGPT','Gemini','Copilot','Claude','NotebookLM','Grok','DeepSeek','Perplexity'],rand([1,2,3])).join(' | '),
+    p13:p13demos[idx%p13demos.length],
+  }));
+
+  build(data);
+  document.getElementById('upload-panel').style.display='none';
+}
+</script>
+</body>
+</html>
